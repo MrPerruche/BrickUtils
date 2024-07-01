@@ -1,0 +1,60 @@
+# warning: this list may contain slurs. putting this else moderators will complain i think?
+
+*absolutely,        2,     # user is certain
+*ass,               1.5,   # hes mad
+*definitely,        2,     # user is certain
+*dog,               1.5,   # hes mad
+*dont,              -1,    # opposite
+*fuck,              2,     # informative swear
+*fuckin,            1.5,   # if it is fucking it is slightly more important; includes fucking
+*gay,               3,     # hes probably homophobic and mad
+*hell,              2,     # informative swear
+*isnt,              -1,    # opposite
+*je,                1e6,   # baguette word
+*kys,               1.5,   # hes mad
+*killyourself,      1.5,   # hes mad
+*keepyourselfsafe,  1.5,   # hes mad
+*mostlikely,        0.75,  # user is not sure
+*nig,               3,     # n word hes mad
+*ofcourse,          1.5,   # also a keyword
+*pieceof,           1.75,  # hes pretty mad
+*probably,          0.75,  # user is not sure
+*shit,              1.5,   # hes mad
+*shutup,            1.5,   # hes mad
+*think,             0.5,   # user is not sure
+
+gay,                -20,   # hes probably homophobic and mad
+goodidea,           5,     # bonus
+kys,                -2,    # hes mad; also a multiplier
+killyourself,       -2,    # hes mad; also a multiplier
+keepyourselfsafe,   2,     # kys but fine; also a multiplier
+want,               8
+loveto,             12,
+na,                 -10,   # includes nah, naw
+nevoudraispas,      -50,   # baguette word -25 pts; set to -50 because voudrais is already in and adds 25.
+nig,                -20,   # n word hes mad
+no,                 -10,
+noway,              -5,    # bonus for noway (-10 -> -15)
+nu,                 -10,   # includes nuhuh
+nuhuh,              -2,    # bonus for nuhuh (-10 -> -12)
+ofcourse,           2,     # depends
+oui,                10,    # baguette yes
+ripyourball,        -10,   # hes mad
+soundsawful,        -20,
+soundsbad,          -15,
+soundslikeshit,     -7.5,  # bonus
+soundslikedogshit,  -10,   # bonus
+soundsgood,         15,
+soundsgreat,        20,
+sure,               2,     # depends
+tard,               -7.5,  # completes fucktard, (7.5 * 2 -> 15)
+think,              2,     # bonus for i don't think / i think
+uncroissant,        inf,   # baguette word
+voudrais,           25,    # baguette word
+whynot,             8,
+whywould,           -8,    # include ends with i, we, you
+whywouldnt,         8,     # include ends with i, we, you
+ya,                 5,
+ye,                 10,    # inclues yes, yea, yeah, yee
+yu,                 10,    # inclues yup, yuhuh
+yuhuh,              2,     # bonus for yuhuh (10 -> 12)
