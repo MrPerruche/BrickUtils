@@ -1,0 +1,12 @@
+{
+    "port": [
+        true,
+        true
+    ],
+    "backup": [
+        true,
+        true
+    ],
+    "backup_limit": 10,
+    "system": "cgs"
+}
