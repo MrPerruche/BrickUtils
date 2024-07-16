@@ -28,7 +28,7 @@ def main():
                 # Update menu
                 menu = update_menu.update_menu(prompt, menu, memory)
             except Exception as e:
-                memory['fatal_error']['text'] = f'You may dismiss this message; or restart BrickUtils\n{type(e).__name__}: {e}'
+                memory['fatal_error']['text'] = f'You may dismiss this message; or restart BrickUtils.\n{type(e).__name__}: {e}'
                 memory['fatal_error']['return_path'] = 'main'
                 menu = 'fatal_error'
                 continue

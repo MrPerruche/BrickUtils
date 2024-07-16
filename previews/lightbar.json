@@ -1,0 +1,195 @@
+{
+    "main/lightbar": {
+        "project": "us_police_lightbar",
+        "layout": [
+            {
+                "col": [
+                    162,
+                    247,
+                    204,
+                    255
+                ],
+                "brightness": 0.5,
+                "material": "LEDMatrix"
+            },
+            {
+                "col": [
+                    85,
+                    255,
+                    255,
+                    255
+                ],
+                "brightness": 0.5,
+                "material": "LEDMatrix"
+            },
+            {
+                "col": [
+                    162,
+                    247,
+                    204,
+                    255
+                ],
+                "brightness": 0.5,
+                "material": "LEDMatrix"
+            },
+            {
+                "col": [
+                    0,
+                    0,
+                    227,
+                    255
+                ],
+                "brightness": 0.5,
+                "material": "LEDMatrix"
+            },
+            {
+                "col": [
+                    162,
+                    247,
+                    204,
+                    255
+                ],
+                "brightness": 0.5,
+                "material": "LEDMatrix"
+            },
+            {
+                "col": [
+                    1,
+                    252,
+                    117,
+                    255
+                ],
+                "brightness": 0.5,
+                "material": "LEDMatrix"
+            },
+            {
+                "col": [
+                    0,
+                    0,
+                    227,
+                    255
+                ],
+                "brightness": 0.5,
+                "material": "LEDMatrix"
+            },
+            {
+                "col": [
+                    1,
+                    252,
+                    117,
+                    255
+                ],
+                "brightness": 0.5,
+                "material": "LEDMatrix"
+            },
+            {
+                "col": [
+                    212,
+                    255,
+                    255,
+                    255
+                ],
+                "brightness": 0.5,
+                "material": "LEDMatrix"
+            },
+            {
+                "col": [
+                    1,
+                    252,
+                    117,
+                    255
+                ],
+                "brightness": 0.5,
+                "material": "LEDMatrix"
+            }
+        ],
+        "lightbar": [
+            {
+                "name": "Alternating checkerboard pattern",
+                "layer_duration": 0.15,
+                "loops": 8,
+                "layers": [
+                    [
+                        true,
+                        false,
+                        true,
+                        false,
+                        true,
+                        false,
+                        true,
+                        false,
+                        true,
+                        false
+                    ],
+                    [
+                        false,
+                        true,
+                        false,
+                        true,
+                        false,
+                        true,
+                        false,
+                        true,
+                        false,
+                        true
+                    ]
+                ]
+            },
+            {
+                "name": "2/-2/2/-2/1/-1 Running lights",
+                "layer_duration": 0.1,
+                "loops": 4,
+                "layers": [
+                    [
+                        true,
+                        true,
+                        false,
+                        false,
+                        true,
+                        true,
+                        false,
+                        false,
+                        true,
+                        false
+                    ],
+                    [
+                        false,
+                        true,
+                        true,
+                        false,
+                        false,
+                        true,
+                        true,
+                        false,
+                        false,
+                        true
+                    ],
+                    [
+                        true,
+                        false,
+                        true,
+                        true,
+                        false,
+                        false,
+                        true,
+                        true,
+                        false,
+                        false
+                    ],
+                    [
+                        false,
+                        true,
+                        false,
+                        true,
+                        true,
+                        false,
+                        false,
+                        true,
+                        true,
+                        false
+                    ]
+                ]
+            }
+        ]
+    }
+}

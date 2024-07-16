@@ -1,3 +1,4 @@
+import colorsys
 import os
 import json
 from datetime import datetime
@@ -5,7 +6,7 @@ import brci
 import shutil
 
 menu: str = 'main'
-version: str = 'D2'
+version: str = 'D3'
 br_version: str = '1.7.2'
 cwd = os.path.dirname(os.path.realpath(__file__))
 
@@ -13,7 +14,7 @@ with open(os.path.join(cwd, 'resources', 'user_react_list.txt'), 'r') as f:
     react_key_item_list: list[str] = f.read().split('\n')
     react_dict: dict[str, float] = {}
     for item in react_key_item_list:
-        split_item: str = item.split(',')
+        split_item: list[str] = item.split(',')
         if len(split_item) >= 2:
             key = split_item[0]
             value = float(split_item[1])
@@ -143,6 +144,32 @@ init_memory: dict[str, any] = {
         'rot_z': 0.0,
         'clear_duplicates': False
     },
+    'main/lightbar': {
+        'project': '',
+        'layout': [
+            {'col': [162, 247, 204, 255], 'brightness': 0.5, 'material': 'LEDMatrix'},
+            {'col': [162, 247, 204, 255], 'brightness': 0.5, 'material': 'LEDMatrix'},
+            {'col': [162, 247, 204, 255], 'brightness': 0.5, 'material': 'LEDMatrix'},
+            {'col': [0, 0, 227, 255], 'brightness': 0.5, 'material': 'LEDMatrix'},
+            {'col': [162, 247, 204, 255], 'brightness': 0.5, 'material': 'LEDMatrix'},
+            {'col': [1, 252, 117, 255], 'brightness': 0.5, 'material': 'LEDMatrix'},
+            {'col': [0, 0, 227, 255], 'brightness': 0.5, 'material': 'LEDMatrix'},
+            {'col': [1, 252, 117, 255], 'brightness': 0.5, 'material': 'LEDMatrix'},
+            {'col': [1, 252, 117, 255], 'brightness': 0.5, 'material': 'LEDMatrix'},
+            {'col': [1, 252, 117, 255], 'brightness': 0.5, 'material': 'LEDMatrix'}
+        ],
+        'lightbar': []
+    },
+    'main/lightbar/layout': {
+        'selected': 0
+    },
+    'main/lightbar/layout/color' : {
+        'mode': 'select_color_space',
+        'alpha': True
+    },
+    'main/lightbar/stage': {
+        'selected': 0
+    },
     'main/rot': {
 
     },
@@ -153,6 +180,90 @@ init_memory: dict[str, any] = {
         'lang': 'english (english)'
     }
 }
+
+
+"""
+def inspect_class(obj):  # TODO
+    for attr in dir(obj):
+        if not attr.startswith("__"):
+            val = getattr(obj, attr)
+            print(f"{attr}: {val}abc_123_!?#{brci.FM.reset}")
+inspect_class(brci.FM)
+input()
+"""
+
+
+terminal_colors: dict[tuple[int, int, int], str] = {
+    # (0, 0, 0): brci.FM.black,  # Excluding black since it would be INVISIBLE
+    (0, 0, 255): brci.FM.blue,
+    (0, 127, 191): brci.FM.cyan,
+    (0, 127, 0): brci.FM.green,
+    (127, 127, 127): brci.FM.light_black,
+    (63, 63, 255): brci.FM.light_blue,
+    (0, 255, 255): brci.FM.light_cyan,
+    (0, 191, 0): brci.FM.light_green,
+    (159, 0, 95): brci.FM.light_purple,
+    (191, 63, 63): brci.FM.light_red,
+    (255, 255, 255): brci.FM.light_white,
+    (255, 255, 191): brci.FM.light_yellow,
+    (95, 0, 63): brci.FM.purple,
+    (127, 0, 0): brci.FM.red,
+    (191, 191, 191): brci.FM.white,
+    (127, 95, 0): brci.FM.yellow
+}
+
+
+def match_color(rgb: list[int]):
+
+    if len(rgb) != 3:
+        raise IndexError('rgb must have 3 elements, not ' + str(len(rgb)))
+
+    diff_table: dict[tuple[int, int, int], int] = {}
+
+    for col in terminal_colors.keys():
+        diff_table |= {col: sum([abs(col - rgb[i]) for i, col in enumerate(col)])}
+
+    least: tuple[int, int, int] = (0, 0, 0)
+    least_diff: int = 1_000  # White VS black is 765. It cannot not be replaced at least once
+
+    for col, diff in diff_table.items():
+        if diff < least_diff:
+            least = col
+            least_diff = diff
+
+    return terminal_colors[least]
+
+
+def render_lightbar(layout: list, filler: str = '[]', zfill_override: bool = False, sel: int | None = None, space: bool = False):
+
+    lightbar_str: str = ''
+    space_ = ' ' if space else ''
+    light_text = filler
+
+    for i, brick in enumerate(layout):
+
+        if zfill_override:
+            light_text = str(i+1).zfill(2)
+
+        rgb_col = [int(y * 255) for y in colorsys.hsv_to_rgb(*[x / 255 for x in brick['col'][:3]])]
+        if sel is None or sel == i:
+            lightbar_str += f'{match_color(rgb_col)}{brci.FM.reverse}{light_text}{brci.FM.reset}{space_}'
+        else:
+            lightbar_str += f'{match_color(rgb_col)}{light_text}{brci.FM.reset}{space_}'
+
+    return lightbar_str
+
+
+def get_r_lightbar_colors(layout: list) -> list[str]:
+
+    output: list = []
+
+    for i, brick in enumerate(layout):
+
+        rgb_col = [int(y * 255) for y in colorsys.hsv_to_rgb(*[x / 255 for x in brick['col'][:3]])]
+        output.append(match_color(rgb_col))
+
+    return output
 
 
 def clamp(min_: float, val: float, max_: float) -> float:
@@ -350,7 +461,11 @@ def i_float(i: str) -> float:
         oom_indicators = {'da': 1, 'h': 2, 'k': 3, 'M': 6, 'G': 9, 'T': 12, 'P': 15, 'E': 18, 'Z': 21, 'Y': 24, 'R': 27, 'Q': 30, # r q: new prefixes adopted in nov 2022
                           'd': -1, 'c': -2, '%': -2, 'm': -3, 'µ': -6, 'u': -6, 'n': -9, 'p': -12, 'f': -15, 'a': -18, 'z': -21, 'y': -24, 'r': -27, 'q': -30}
 
-        for oom, val in oom_indicators.items():
-            if oom in i_:
-                i_ = i_.replace(oom, '')
-                return float(i_) * (10 ** val)
+        oom: int = 0
+
+        for oom_, val in oom_indicators.items():
+            while oom_ in i_:
+                i_ = i_.replace(oom_, '', 1)
+                oom += val
+
+        return float(i_) * (10 ** oom)

@@ -1,10 +1,12 @@
 import os
 from brci import BrickInput
 from copy import deepcopy
-from data import react_dict, char_blacklist, clen, init_memory, i_int, i_float, cwd, save_json, multi_replace, convert_length
+from data import (react_dict, char_blacklist, clen, init_memory, i_int, i_float, cwd, save_json, load_json,
+                  multi_replace, convert_length)
 import colorsys
 import scripts
 import math
+import subprocess
 
 
 def count_strings_in_list(input_string: str, string_list: list[str] | list[tuple[str, float]]):
@@ -51,8 +53,10 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
         if prompt.lower() in ['y', 'yes']:
             memory = deepcopy(init_memory)
             new_menu = 'main'
+            return new_menu
         elif prompt.lower() in ['n', 'no']:
             new_menu = 'main'
+            return new_menu
         else:
             memory['invalid']['return_path'] = 'fatal_error'
             memory['invalid']['text'] = f"Please type 'y' or 'n'. Sentences are not accepted here to avoid any additional errors."
@@ -85,18 +89,22 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
 
         elif prompt == '4':
 
-            new_menu = 'main/edit'
+            new_menu = 'main/lightbar'
 
         elif prompt == '5':
 
-            new_menu = 'main/rotate'
+            new_menu = 'main/edit'
 
         elif prompt == '6':
+
+            new_menu = 'main/rotate'
+
+        elif prompt == '7':
 
             memory['main/settings']['new_main'] = deepcopy(memory['main'])
             new_menu = 'main/settings'
 
-        elif prompt == '7':
+        elif prompt == '8':
 
             new_menu = 'main/help'  # TODO
 
@@ -1043,7 +1051,7 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
             sel_prop = list(properties.keys())[int_prompt]
 
 
-            if memory['main/brick/properties']['advanced']:  # Yes it's separate because idk
+            if memory['main/brick/properties']['advanced']:  # Yes it's separate idk why
 
                 memory['main/brick/properties/eval']['property'] = sel_prop
                 new_menu = 'main/brick/properties/eval'
@@ -1439,9 +1447,512 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
         elif prompt == '1':
             if memory['main/help']['lang'] == 'english (english)':
                 memory['main/help']['lang'] = 'français (french)'
-            else:
+            elif memory['main/help']['lang'] == 'français (french)':
+                memory['main/help']['lang'] = 'русский (russian)'
+            elif memory['main/help']['lang'] == 'русский (russian)':
+                memory['main/help']['lang'] = 'deutsch (german)'
+            elif memory['main/help']['lang'] == 'deutsch (german)':
+                memory['main/help']['lang'] = 'español (spanish)'
+            else: # memory['main/help']['lang'] == 'español (spanish)':
                 memory['main/help']['lang'] = 'english (english)'
+
             new_menu = 'main/help'
+
+
+    elif menu == 'main/lightbar':
+
+        try:
+            int_prompt = int(prompt)
+        except ValueError:
+            return new_menu
+
+        if int_prompt == 0:
+            new_menu = 'main'
+            return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+            new_menu = 'main/lightbar/project'
+            return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+            new_menu = 'main/lightbar/layout'
+            return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+
+            new_stage: dict[str, any] = {  # TODO
+                'name': "New stage",
+                'layer_duration': 0.2,
+                'loops': 6,
+                'layers': [
+                    [False]*10
+                ]
+            }
+            memory['main/lightbar']['lightbar'].append(new_stage)
+        int_prompt -= 1
+
+        if int_prompt == 0:
+
+            if len(memory['main/lightbar']['lightbar']) > 0:
+                del memory['main/lightbar']['lightbar'][-1]
+        int_prompt -= 1
+
+        for i in range(len(memory['main/lightbar']['lightbar'])):
+            if int_prompt == 0:
+                memory['main/lightbar/stage']['selected'] = i
+                new_menu = 'main/lightbar/stage'
+                return new_menu
+            int_prompt -= 1
+
+        # Export
+        if int_prompt == 0:
+
+            projects_dir = os.path.join(cwd, 'projects')
+            in_project_dir = os.path.join(projects_dir, memory['main/lightbar']['project'])
+
+            if not os.path.exists(projects_dir):
+                memory['invalid']['text'] = 'important folders are missing. Please reinstall BrickUtils.'
+                memory['invalid']['return_path'] = 'main/lightbar'
+                new_menu = 'invalid'
+                return new_menu
+
+            if not os.path.exists(in_project_dir):
+                os.makedirs(in_project_dir)
+
+            given_dict = {'important_info': 'warning: modifying this file may cause errors and data loss.',
+                          'main/lightbar': memory['main/lightbar']}
+            save_json(os.path.join(in_project_dir, 'lightbar.json'), given_dict)
+
+            file_size = os.path.getsize(os.path.join(in_project_dir, 'lightbar.json'))
+
+            memory['success']['text'] = f'Project exported as \'lightbar.json\' ({file_size:,.1f}). Please do not edit this file.'
+            memory['success']['return_path'] = 'main/lightbar'
+            new_menu = 'success'
+            return new_menu
+
+        int_prompt -= 1
+
+        # Import lightbar.json
+        if int_prompt == 0:
+
+            projects_dir = os.path.join(cwd, 'projects')
+            in_project_dir = os.path.join(projects_dir, memory['main/lightbar']['project'])
+            lightbar_dir = os.path.join(in_project_dir, 'lightbar.json')
+
+            if not os.path.exists(projects_dir):
+                memory['invalid']['text'] = 'important folders are missing. Please reinstall BrickUtils.'
+                memory['invalid']['return_path'] = 'main/lightbar'
+                new_menu = 'invalid'
+                return new_menu
+
+            if not os.path.exists(in_project_dir):
+                memory['invalid']['text'] = 'project not found.'
+                memory['invalid']['return_path'] = 'main/lightbar'
+                new_menu = 'invalid'
+                return new_menu
+
+            if not os.path.exists(lightbar_dir):
+                memory['invalid']['text'] = 'lightbar.json is missing.'
+                memory['invalid']['return_path'] = 'main/lightbar'
+                new_menu = 'invalid'
+                return new_menu
+
+            lightbar = load_json(lightbar_dir)
+
+            lightbar.pop('important_info')
+            memory.update(lightbar)
+
+            file_size = os.path.getsize(lightbar_dir)
+
+            memory['success']['text'] = f'Imported \'lightbar.json\' ({file_size/1024:,.1f} KiB) from {memory['main/lightbar']['project']}.'
+            memory['success']['return_path'] = 'main/lightbar'
+            new_menu = 'success'
+            return new_menu
+
+        int_prompt -= 1
+
+        if int_prompt == 0:
+
+            new_menu = 'main/lightbar/import_from'
+            return new_menu
+        int_prompt -= 1
+
+        # preview
+        if int_prompt == 0:
+
+            previews_dir = os.path.join(cwd, 'previews')
+
+            if os.path.exists(previews_dir):
+                given_dict = {'main/lightbar': memory['main/lightbar']}
+                save_json(os.path.join(previews_dir, 'lightbar.json'), given_dict)
+
+            subprocess.Popen('python previews/lightbar_preview.py', creationflags=subprocess.CREATE_NEW_CONSOLE)
+
+            return new_menu
+
+
+
+
+    elif menu == 'main/lightbar/project':
+
+        memory['main/lightbar']['project'] = prompt
+        new_menu = 'main/lightbar'
+
+
+    elif menu == 'main/lightbar/layout':
+
+        try:
+            int_prompt = int(prompt)
+        except ValueError:
+            return new_menu
+
+        if int_prompt == 0:
+            new_menu = 'main/lightbar'
+            return new_menu
+        # A bit of wizardry here; look carefully!
+
+        if int_prompt <= len(memory['main/lightbar']['layout']):
+            memory['main/lightbar/layout']['selected'] = int_prompt - 1  # Index offset
+            return new_menu
+        # else:
+        int_prompt -= len(memory['main/lightbar']['layout']) + 1
+
+        if int_prompt == 0:
+            memory['main/lightbar/layout/color']['mode'] = 'select_color_space'
+            memory['main/lightbar/layout/color']['alpha'] = True
+            new_menu = 'main/lightbar/layout/color'
+            return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+            new_menu = 'main/lightbar/layout/brightness'
+            return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+            new_menu = 'main/lightbar/layout/material'
+            return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+
+            if len(memory['main/lightbar']['layout']) > 1:
+                sel_brick = memory['main/lightbar/layout']['selected']
+                del memory['main/lightbar']['layout'][sel_brick]
+
+                for stage in memory['main/lightbar']['lightbar']:
+                    for layer in stage['layers']:
+                        del layer[sel_brick]
+
+            return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+
+            if len(memory['main/lightbar']['layout']) < 99:
+                sel_brick = memory['main/lightbar/layout']['selected']
+                memory['main/lightbar']['layout'].insert(sel_brick + 1, {
+                    'col': [0, 0, 127, 255],
+                    'brightness': 0.5,
+                    'material': 'Glass'
+                })
+
+                for stage in memory['main/lightbar']['lightbar']:
+                    for layer in stage['layers']:
+                        layer.insert(sel_brick + 1, False)
+
+            return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+
+            if len(memory['main/lightbar']['layout']) < 99:
+                sel_brick = memory['main/lightbar/layout']['selected']
+                memory['main/lightbar']['layout'].insert(sel_brick + 1, deepcopy(memory['main/lightbar']['layout'][sel_brick]))
+
+                for stage in memory['main/lightbar']['lightbar']:
+                    for layer in stage['layers']:
+                        layer.insert(sel_brick + 1, layer[sel_brick])
+
+            return new_menu
+
+
+    elif menu == 'main/lightbar/layout/color':
+
+        brick = memory['main/lightbar']['layout'][memory['main/lightbar/layout']['selected']]
+
+        if prompt == '0':
+            new_menu = 'main/lightbar/layout'
+            return new_menu
+        new_menu = 'main/lightbar/layout/color'
+
+        color_space = memory['main/lightbar/layout/color']['mode']
+
+        if color_space == 'select_color_space':
+
+            if prompt == '1':
+                memory['main/lightbar/layout/color']['mode'] = 'hsva'
+            elif prompt == '2':
+                memory['main/lightbar/layout/color']['mode'] = 'hsla'
+            elif prompt == '3':
+                memory['main/lightbar/layout/color']['mode'] = 'rgba'
+            elif prompt == '4':
+                memory['main/lightbar/layout/color']['mode'] = 'cmyka'
+
+            return new_menu
+
+        try:
+            values = [i_float(i) for i in multi_replace(prompt, ['[', ']', '(', ')', '{', '}', ' '], '').split(',')]
+            min_len = 4
+            if color_space == 'cymka':
+                min_len = 5
+            if len(values) < min_len:
+                values += [1.0]
+
+        except ValueError:
+            if prompt[0] == '#':
+                pass
+            else:
+                return new_menu
+
+        if color_space == 'hsva':
+            hsv_h = values[0] / 360
+            hsv_s = values[1] / 100
+            hsv_v = values[2] / 100
+            hsv_a = values[3] / 100
+
+            hsv_h, hsv_s, hsv_v, hsv_a = int(hsv_h * 255), int(hsv_s * 255), int(hsv_v * 255), int(hsv_a * 255)
+            brick['col'] = [hsv_h, hsv_s, hsv_v]
+            if memory['main/lightbar/layout/color']['alpha']:
+                brick['col'] += [hsv_a]
+
+        elif color_space == 'hsla':
+
+            # Convert to hsva; we WILL NOT create a function for that in scripts
+            hsl_h = values[0] / 360
+            hsl_s = values[1] / 100
+            hsl_l = values[2] / 100
+            hsv_a = values[3] / 100
+
+            rgb_r, rgb_g, rgb_b = colorsys.hls_to_rgb(hsl_h, hsl_l, hsl_s)
+            hsv_h, hsv_s, hsv_v = colorsys.rgb_to_hsv(rgb_r, rgb_g, rgb_b)
+
+            hsv_h, hsv_s, hsv_v, hsv_a = int(hsv_h * 255), int(hsv_s * 255), int(hsv_v * 255), int(hsv_a * 255)
+
+            brick['col'] = [hsv_h, hsv_s, hsv_v]
+            if memory['main/lightbar/layout/color']['alpha']:
+                brick['col'] += [hsv_a]
+
+        elif color_space == 'rgba':
+
+            if prompt[0] == '#':
+
+                rgb_r = int(prompt[1:3], 16) / 255
+                rgb_g = int(prompt[3:5], 16) / 255
+                rgb_b = int(prompt[5:7], 16) / 255
+                try:
+                    rgb_a = int(prompt[7:9], 16) / 255
+                except ValueError:
+                    rgb_a = 1.0
+
+            else:
+
+                rgb_r = values[0] / 255
+                rgb_g = values[1] / 255
+                rgb_b = values[2] / 255
+                rgb_a = values[3] / 255
+
+            hsv_h, hsv_s, hsv_v = colorsys.rgb_to_hsv(rgb_r, rgb_g, rgb_b)
+
+            hsv_h, hsv_s, hsv_v, hsv_a = int(hsv_h * 255), int(hsv_s * 255), int(hsv_v * 255), int(rgb_a * 255)
+
+            brick['col'] = [hsv_h, hsv_s, hsv_v]
+            if memory['main/lightbar/layout/color']['alpha']:
+                brick['col'] += [hsv_a]
+
+        elif color_space == 'cmyka':
+
+            # Convert CYMKA to RGBA
+
+            cmyka_c = values[0] / 100
+            cmyka_m = values[1] / 100
+            cmyka_y = values[2] / 100
+            cmyka_k = values[3] / 100
+            cmyka_a = values[4] / 100
+
+            rgb_r = (1 - cmyka_c) * (1 - cmyka_k)
+            rgb_g = (1 - cmyka_m) * (1 - cmyka_k)
+            rgb_b = (1 - cmyka_y) * (1 - cmyka_k)
+            rgb_a = cmyka_a
+
+            # Convert RGBA to HSVA
+            hsv_h, hsv_s, hsv_v = colorsys.rgb_to_hsv(rgb_r, rgb_g, rgb_b)
+
+            hsv_h, hsv_s, hsv_v, hsv_a = int(hsv_h * 255), int(hsv_s * 255), int(hsv_v * 255), int(rgb_a * 255)
+
+            brick['col'] = [hsv_h, hsv_s, hsv_v]
+            if memory['main/lightbar/layout/color']['alpha']:
+                brick['col'] += [hsv_a]
+
+        new_menu = 'main/lightbar/layout'
+
+    elif menu == 'main/lightbar/layout/brightness':
+
+        try:
+            memory['main/lightbar']['layout'][memory['main/lightbar/layout']['selected']]['brightness'] = i_float(prompt)
+        except ValueError:
+            memory['invalid']['text'] = 'Brightness must be a value.'
+            memory['invalid']['return_path'] = 'main/lightbar/layout'
+            new_menu = 'invalid'
+            return new_menu
+
+        new_menu = 'main/lightbar/layout'
+
+    elif menu == 'main/lightbar/layout/material':
+
+        if prompt not in ['0', '1', '2', '3', '4']:
+            return new_menu
+
+        # if prompt == '0':
+            # new_menu = 'main/lightbar/layout'
+        # elif prompt == '1':
+        if prompt == '1':
+            memory['main/lightbar']['layout'][memory['main/lightbar/layout']['selected']]['material'] = 'Glass'
+        elif prompt == '2':
+            memory['main/lightbar']['layout'][memory['main/lightbar/layout']['selected']]['material'] = 'CloudyGlass'
+        elif prompt == '3':
+            memory['main/lightbar']['layout'][memory['main/lightbar/layout']['selected']]['material'] = 'Glow'
+        elif prompt == '4':
+            memory['main/lightbar']['layout'][memory['main/lightbar/layout']['selected']]['material'] = 'LEDMatrix'
+
+        new_menu = 'main/lightbar/layout'
+
+    elif menu == 'main/lightbar/stage':
+
+        stage = memory['main/lightbar']['lightbar'][memory['main/lightbar/stage']['selected']]
+
+        try:
+            separators = ['/', '.', ',', ' ']
+            if not any([separator in prompt for separator in separators]):
+                if prompt == '0':
+                    new_menu = 'main/lightbar'
+                elif prompt == '1':
+                    new_menu = 'main/lightbar/stage/name'
+                elif prompt == '2':
+                    new_menu = 'main/lightbar/stage/layer_duration'
+                elif prompt == '3':
+                    new_menu = 'main/lightbar/stage/loops'
+                elif prompt == '4':
+                    if len(stage['layers']) < 99:
+                        stage['layers'].append([False] * len(memory['main/lightbar']['layout']))
+                elif prompt == '5':
+                    if len(stage['layers']) > 1:
+                        del stage['layers'][-1]
+                    else:
+                        stage['layers'] = [[False] * len(memory['main/lightbar']['layout'])]
+
+            else:
+                if '/' in prompt:
+                    path: list[str] = prompt.split('/')
+                elif '.' in prompt:
+                    path: list[str] = prompt.split('.')
+                elif ',' in prompt:
+                    path: list[str] = prompt.split(',')
+                else: # if ' ' in prompt:
+                    path: list[str] = prompt.split(' ')
+
+                path: tuple[int, int] = (int(path[0]), int(path[1]))
+
+                if not (0 < path[0] <= len(stage['layers']) and 0 < path[1] <= len(memory['main/lightbar']['layout'])):
+                    memory['invalid']['text'] = f'Invalid light (layer {path[0]} / brick {path[1]})'
+                    memory['invalid']['return_path'] = 'main/lightbar/stage'
+                    new_menu = 'invalid'
+                    return new_menu
+
+                stage['layers'][path[0]-1][path[1]-1] = not stage['layers'][path[0]-1][path[1]-1]
+
+        except ValueError:
+            pass
+
+    elif menu == 'main/lightbar/stage/name':
+
+        stage = memory['main/lightbar']['lightbar'][memory['main/lightbar/stage']['selected']]
+        stage['name'] = prompt
+        new_menu = 'main/lightbar/stage'
+
+    elif menu == 'main/lightbar/stage/layer_duration':
+
+        new_menu = 'main/lightbar/stage'
+        if prompt == '0':
+            return new_menu
+
+        stage = memory['main/lightbar']['lightbar'][memory['main/lightbar/stage']['selected']]
+        try:
+            float_prompt = i_float(prompt)
+            if float_prompt <= 0:
+                raise ValueError
+            stage['layer_duration'] = float_prompt / 1_000
+        except ValueError:
+            memory['invalid']['text'] = 'Layer duration must be a value greater than 0.'
+            memory['invalid']['return_path'] = 'main/lightbar/stage'
+            new_menu = 'invalid'
+
+    elif menu == 'main/lightbar/stage/loops':
+
+        new_menu = 'main/lightbar/stage'
+        if prompt == '0':
+            return new_menu
+
+        stage = memory['main/lightbar']['lightbar'][memory['main/lightbar/stage']['selected']]
+        try:
+            int_prompt = i_int(prompt)
+            if int_prompt <= 0:
+                raise ValueError
+            stage['loops'] = int_prompt
+        except ValueError:
+            memory['invalid']['text'] = 'Loops must be an integer greater than 0.'
+            memory['invalid']['return_path'] = 'main/lightbar/stage'
+            new_menu = 'invalid'
+
+
+    elif menu == 'main/lightbar/import_from':
+
+        projects_dir = os.path.join(cwd, 'projects')
+        in_project_dir = os.path.join(projects_dir, memory['main/lightbar']['project'])
+        lightbar_dir = os.path.join(in_project_dir, prompt)
+
+        if not os.path.exists(projects_dir):
+            memory['invalid']['text'] = 'important folders are missing. Please reinstall BrickUtils.'
+            memory['invalid']['return_path'] = 'main/lightbar'
+            new_menu = 'invalid'
+            return new_menu
+
+        if not os.path.exists(in_project_dir):
+            memory['invalid']['text'] = 'project not found.'
+            memory['invalid']['return_path'] = 'main/lightbar'
+            new_menu = 'invalid'
+            return new_menu
+
+        if not os.path.exists(lightbar_dir):
+            memory['invalid']['text'] = f'{prompt} is missing.'
+            memory['invalid']['return_path'] = 'main/lightbar'
+            new_menu = 'invalid'
+            return new_menu
+
+        lightbar = load_json(lightbar_dir)
+
+        lightbar.pop('important_info')
+        memory.update(lightbar)
+
+        file_size = os.path.getsize(lightbar_dir)
+
+        memory['success']['text'] = f'Imported \'{prompt}\' ({file_size/1024:,.1f} KiB) from {memory['main/lightbar']['project']}.'
+        memory['success']['return_path'] = 'main/lightbar'
+        new_menu = 'success'
+        return new_menu
 
 
     return new_menu

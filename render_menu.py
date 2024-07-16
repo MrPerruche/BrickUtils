@@ -1,6 +1,7 @@
 import os
 from brci import FM, deepcopy
-from data import version, br_version, get_len_unit, clen_str, str_connector, str_int_dir
+from data import version, br_version, get_len_unit, clen_str, str_connector, str_int_dir, match_color, render_lightbar
+from data import get_r_lightbar_colors
 
 
 cwd = os.path.dirname(os.path.realpath(__file__))
@@ -43,13 +44,14 @@ def render_menu(menu: str, memory: dict[str, any]) -> str:
         case 'fatal_error':
 
             print(render_text('n', 'AN ERROR OCCURED!', True, FM.red))
+            print(render_text('y', 'Attempt to reset memory', False, FM.red))
             additional_text: list[str] = ['No additional information'] if memory['fatal_error']['text'] == '' else memory['fatal_error']['text'].split('\n')
             for text in additional_text:
                 print(render_text('', text, False, FM.red))
 
         case 'success':
 
-            print(render_text('ANY', 'Generation successful', True, FM.light_cyan))
+            print(render_text('ANY', 'Success', True, FM.light_cyan))
             additional_text: list[str] = ['No additional information'] if memory['success']['text'] == '' else memory['success']['text'].split('\n')
             for text in additional_text:
                 print(render_text('', text, False, FM.light_cyan))
@@ -63,12 +65,13 @@ def render_menu(menu: str, memory: dict[str, any]) -> str:
 
             print(render_text('0', 'Main menu', True))
             print(render_text('1', 'Brick generator', False))
-            print(render_text('2', 'Hollow arc generator', False, FM.light_red))
+            print(render_text('2', 'Hollow arc generator (under consideration)', False, FM.light_red))
             print(render_text('3', 'Pixel art importer', False))
-            print(render_text('4', 'Creation editor', False))
-            print(render_text('5', 'Rotation rounder', False, FM.light_red))
-            print(render_text('6', 'Settings', False))
-            print(render_text('7', 'Important information', False))
+            print(render_text('4', 'Lightbar generator', False))
+            print(render_text('5', 'Creation editor', False))
+            print(render_text('6', 'Rotation rounder (planned)', False, FM.light_red))
+            print(render_text('7', 'Settings', False))
+            print(render_text('8', 'Important information', False))
 
         case 'main/arc':
 
@@ -446,7 +449,7 @@ def render_menu(menu: str, memory: dict[str, any]) -> str:
 
             print(render_text(str(key), f'Delete duplicated bricks: {bool_to_yes_no(memory["main/edit"]["clear_duplicates"])}', False)); key += 1
 
-            print(render_text(str(key), 'Generate modififed creation', False)); key += 1
+            print(render_text(str(key), 'Generate modified creation', False)); key += 1
 
         case 'main/edit/off_x':
 
@@ -562,7 +565,7 @@ def render_menu(menu: str, memory: dict[str, any]) -> str:
 
         case 'main/brick/properties/color':
 
-            alpha_text = ''
+            alpha_text = ' '
             alpha_initial = ''
             if memory['main/brick/properties/color']['alpha']:
                 alpha_text = ', alpha (%) '
@@ -570,33 +573,33 @@ def render_menu(menu: str, memory: dict[str, any]) -> str:
 
             if memory['main/brick/properties/color']['mode'] == 'select_color_space':
 
-                print(render_text('0', 'Main menu > Brick generator > Edit properties > Edit {memory["main/brick/properties/color"]["property"]} > Select color', True))
+                print(render_text('0', f'Main menu > Brick generator > Edit properties > Edit {memory["main/brick/properties/color"]["property"]} > Select color', True))
                 print(render_text('1', f'Use HSV{alpha_initial} color space', False))
                 print(render_text('2', f'Use HSL{alpha_initial} color space', False))
                 print(render_text('3', f'Use RGB{alpha_initial} color space / hex', False))
                 print(render_text('4', f'Use CMYK{alpha_initial} color space', False))
 
-                return
+                return ''
 
             elif memory['main/brick/properties/color']['mode'] == 'hsva':
 
                 print(render_text('0', f'Main menu > Brick generator > Edit properties > Edit {memory["main/brick/properties/color"]["property"]} > Set HSV{alpha_initial} color', True))
-                print(render_text('OTHER', f'Input hue (degrees), saturation (%), value (%){alpha_text} separated by a comma...', False))
+                print(render_text('OTHER', f'Input hue (degrees), saturation (%), value (%){alpha_text}separated by a comma...', False))
 
             elif memory['main/brick/properties/color']['mode'] == 'hsla':
 
                 print(render_text('0', f'Main menu > Brick generator > Edit properties > Edit {memory["main/brick/properties/color"]["property"]} > Set HSL{alpha_initial} color', True))
-                print(render_text('OTHER', f'Input hue (degrees), saturation (%), lightness (%){alpha_text} separated by a comma...', False))
+                print(render_text('OTHER', f'Input hue (degrees), saturation (%), lightness (%){alpha_text}separated by a comma...', False))
 
             elif memory['main/brick/properties/color']['mode'] == 'rgba':
 
                 print(render_text('0', f'Main menu > Brick generator > Edit properties > Edit {memory["main/brick/properties/color"]["property"]} > Set RGB{alpha_initial} color', True))
-                print(render_text('OTHER', 'fInput red (0-255), green (0-255), blue (0-255){alpha_text} separated by a comma or # followed by a hex code...', False))
+                print(render_text('OTHER', f'Input red (0-255), green (0-255), blue (0-255){alpha_text}separated by a comma or # followed by a hex code...', False))
 
             elif memory['main/brick/properties/color']['mode'] == 'cmyka':
 
                 print(render_text('0', f'Main menu > Brick generator > Edit properties > Edit {memory["main/brick/properties/color"]["property"]} > Set CMYK{alpha_initial} color', True))
-                print(render_text('OTHER', f'Input cyan (%), magenta (%), yellow (%), key (aka black) (%){alpha_text} separated by a comma...', False))
+                print(render_text('OTHER', f'Input cyan (%), magenta (%), yellow (%), key (aka black) (%){alpha_text}separated by a comma...', False))
 
         case 'main/brick/properties/choice':
 
@@ -705,3 +708,240 @@ def render_menu(menu: str, memory: dict[str, any]) -> str:
                 print(render_text('', '1. Assurez-vous de respecter toutes les exigences, puis redémarrez BrickUtils.', False))
                 print(render_text('', '2. Réinstallez BrickUtils en vous assurant d\'utiliser la dernière version.', False))
                 print(render_text('', '3. Contactez @perru_ sur Discord et décrivez votre problème. Nous essaierons de le résoudre rapidement.', False))
+            elif memory['main/help']['lang'] == 'русский (russian)':
+                print(render_text('', 'NOTE: Этот текст был переведен с помощью искусственного интеллекта.', False))
+                print(render_text('', 'NOTE: Весь Brickutils, за исключением этого меню, на английском языке.', False))
+                print(render_text('', 'Для полноценного использования BrickUtils требуется Python и Pillow.', False))
+                print(render_text('', 'BrickUtils не поддерживает операционные системы, отличные от Windows.', False))
+                print(render_text('', 'Использование другой операционной системы может привести к ошибкам или потере данных.', False))
+                print(render_text('', 'Для восстановления потерянных данных доступны резервные копии.', False))
+                print(render_text('', 'Вы можете получить доступ к папке с резервными копиями в настройках.', False))
+                print(render_text('', 'Генерация/редактирование может быть медленным, если BrickUtils пытается сохранить слишком много файлов.', False))
+                print(render_text('', 'Если отключены резервные копии, рассмотрите отключение портирования, чтобы избежать потери данных.', False))
+                print(render_text('', 'Пожалуйста, настройте лимит резервного копирования в настройках, чтобы не занимать место на диске.', False))
+                print(render_text('', 'BrickUtils находится на GitHub только для распространения своего кода. Мы не принимаем вклады.', False))
+                print(render_text('', 'НАПОМИНАНИЕ: Согласно лицензии GPL-3.0, BrickUtils предоставляется "как есть".', False))
+                print(render_text('', 'Следовательно, мы не несем ответственности за ущерб, причиненный использованием BrickUtils.', False))
+                print(render_text('', 'Если у вас возникли проблемы:', False))
+                print(render_text('', '1. Убедитесь, что вы выполнили все требования, затем перезапустите BrickUtils.', False))
+                print(render_text('', '2. Переустановите BrickUtils, убедившись, что вы используете последнюю версию.', False))
+                print(render_text('', '3. Свяжитесь с @perru_ на Discord и опишите свою проблему. Мы постараемся решить ее быстро.', False))
+            elif memory['main/help']['lang'] == 'deutsch (german)':
+                print(render_text('', 'HINWEIS: Dieser Text wurde mithilfe künstlicher Intelligenz übersetzt.', False))
+                print(render_text('', 'HINWEIS: Der gesamte Inhalt von Brickutils, mit Ausnahme dieses Menüs, ist in Englisch.', False))
+                print(render_text('', 'Python und Pillow sind erforderlich, um BrickUtils vollständig nutzen zu können.', False))
+                print(render_text('', 'BrickUtils unterstützt keine Betriebssysteme außer Windows.', False))
+                print(render_text('', 'Die Verwendung eines anderen Betriebssystems kann zu Fehlern oder Datenverlust führen.', False))
+                print(render_text('', 'Backups sind verfügbar, um Datenverluste wiederherzustellen.', False))
+                print(render_text('', 'Sie können auf den Backup-Ordner in den Einstellungen zugreifen.', False))
+                print(render_text('', 'Die Generierung/Bearbeitung kann langsam sein, wenn BrickUtils versucht, zu viele Dateien zu sichern.', False))
+                print(render_text('', 'Wenn Backups deaktiviert sind, sollten Sie das Portieren deaktivieren, um Datenverluste zu vermeiden.', False))
+                print(render_text('', 'Bitte passen Sie die Backup-Grenze in den Einstellungen an, um Speicherplatz zu sparen.', False))
+                print(render_text('', 'BrickUtils ist auf GitHub nur zur Verbreitung des Codes verfügbar. Wir akzeptieren keine Beiträge.', False))
+                print(render_text('', 'ERINNERUNG: Gemäß der GPL-3.0-Lizenz wird BrickUtils "wie es ist" bereitgestellt.', False))
+                print(render_text('', 'Wir übernehmen keine Verantwortung für Schäden durch die Verwendung von BrickUtils.', False))
+                print(render_text('', 'Wenn Sie Probleme haben:', False))
+                print(render_text('', '1. Stellen Sie sicher, dass Sie alle Anforderungen erfüllen, und starten Sie dann BrickUtils neu.', False))
+                print(render_text('', '2. Installieren Sie BrickUtils neu und verwenden Sie die neueste Version.', False))
+                print(render_text('', 'Kontaktieren Sie @perru_ auf Discord und beschreiben Ihr Problem. Wir werden es schnell lösen.', False))
+            elif memory['main/help']['lang'] == 'español (spanish)':
+                print(render_text('', 'NOTA: Este texto ha sido traducido con inteligencia artificial', False))
+                print(render_text('', 'NOTA: Todo BrickUtils, excepto este menú, está en inglés.', False))
+                print(render_text('', 'Python y Pillow son necesarios para utilizar completamente BrickUtils.', False))
+                print(render_text('', 'BrickUtils no es compatible con sistemas operativos que no sean Windows.', False))
+                print(render_text('', 'El uso de otro sistema operativo puede provocar errores o pérdida de datos.', False))
+                print(render_text('', 'Puede acceder a la carpeta de respaldo en la configuración.', False))
+                print(render_text('', 'Hay copias de seguridad disponibles para restaurar cualquier pérdida de datos.', False))
+                print(render_text('', 'La generación/edición puede ser lenta si BrickUtils respalda demasiados archivos.', False))
+                print(render_text('', 'Si las copias de seguridad están desactivadas, desactive el portado para evitar pérdida de datos.', False))
+                print(render_text('', 'Ajuste el límite de respaldo en la configuración para no desperdiciar espacio en disco.', False))
+                print(render_text('', 'BrickUtils está en GitHub solo para distribuir su código. No aceptaremos contribuciones.', False))
+                print(render_text('', 'RECORDATORIO: Según la licencia GPL-3.0, BrickUtils se proporciona "as is" ("tal cual").', False))
+                print(render_text('', 'Por lo tanto, no somos responsables de los daños causados por el uso de BrickUtils.', False))
+                print(render_text('', 'Si tiene problemas:', False))
+                print(render_text('', '1. Asegúrese de cumplir con todos los requisitos y luego reinicie BrickUtils.', False))
+                print(render_text('', '2. Vuelva a instalar BrickUtils asegurándose de usar la última versión.', False))
+                print(render_text('', '3. Contacte a @perru_ en Discord y describa su problema. Intentaremos resolverlo rápido.', False))
+
+
+        case 'main/lightbar':
+
+            key: int = 0
+
+            print(render_text(str(key), 'Main menu > Lightbar generator', True)); key += 1
+
+            print(render_text('WARN', 'Generation is not available yet. You may export it, to import and generate it in a later version.', False, FM.yellow))
+
+            print(render_text(str(key), f'Project: {memory['main/lightbar']['project']}', False)); key += 1
+
+            # Debug render test
+            """
+            new_layout = []
+            import random
+            for _ in range(50):
+                # new_layout.append({'col': [random.randint(0, 255) for _ in range(4)], 'brightness': 0.5, 'material': 'Glass'})
+                new_layout.append({'col': [random.randint(0, 255), 255 - int(random.uniform(0, 1) ** 2.2 * 255), random.randint(0, 255), random.randint(0, 255)], 'brightness': 0.5, 'material': 'Glass'})
+            memory['main/lightbar']['layout'] = new_layout
+            """
+            print(render_text(str(key), f'Lightbar layout: {render_lightbar(memory['main/lightbar']['layout'])}', False)); key += 1
+
+            print(render_text(str(key), 'Add a new stage', False)); key += 1
+            if len(memory['main/lightbar']['lightbar']) > 0:
+                last_stage = memory['main/lightbar']['lightbar'][-1]
+                print(render_text(str(key), f'Remove last stage (Stage {str(len(memory['main/lightbar']['lightbar'])).zfill(2)} "{last_stage["name"]}" ({round(last_stage['loops']*last_stage['layer_duration']*len(last_stage['layers'])*1000):,}ms))', False)); key += 1
+            else:
+                print(render_text(str(key), f'Remove last stage (No stage found)', False, FM.light_black)); key += 1
+
+            for i, stage in enumerate(memory['main/lightbar']['lightbar']):
+                stage = memory['main/lightbar']['lightbar'][i]
+                print(render_text(str(key), f'Stage {str(i+1).zfill(2)} "{stage['name']}" ({round(stage['loops']*stage['layer_duration']*len(stage['layers'])*1000):,}ms)', False)); key += 1
+
+            print(render_text(str(key), 'Export lightbar', False)); key += 1
+            print(render_text(str(key), 'Import lightbar (from lightbar.json)', False)); key += 1
+            print(render_text(str(key), 'Import lightbar from..', False)); key += 1
+            print(render_text(str(key), 'Preview', False)); key += 1
+            print(render_text(str(key), 'Generate lightbar', False, FM.light_black)); key += 1
+
+
+        case 'main/lightbar/project':
+
+            print(render_text('', 'Main menu > Lightbar generator > Edit selected project', True))
+            print(render_text('ANY', 'Input new project name...', False))
+
+
+        case 'main/lightbar/layout':
+
+            print(render_text('0', 'Main menu > Lightbar generator > Edit layout', True))
+            print(render_text('SELEC', render_lightbar(memory['main/lightbar']['layout'], zfill_override=True, sel=memory['main/lightbar/layout']['selected'], space=True), False))
+
+            key = len(memory['main/lightbar']['layout']) + 1
+            sel = memory['main/lightbar/layout']['selected']
+            sel_b = memory['main/lightbar']['layout'][sel]
+            ccode = f'H{sel_b['col'][0]/255*360:.1f}°, S{sel_b['col'][1]/255*100:.1f}%, V{sel_b['col'][2]/255*100:.1f}%, A{sel_b['col'][3]/255*100:.1f}%'
+
+            print(render_text(str(key), f'Selected light color: {ccode}', False)); key += 1
+            print(render_text(str(key), f'Selected light brightness: {sel_b['brightness']*100}%', False)); key += 1
+            print(render_text(str(key), f'Selected light material: {sel_b['material']}', False)); key += 1
+
+            del_col = None if len(memory['main/lightbar']['layout']) > 1 else FM.light_black
+            print(render_text(str(key), f'Delete selected light brick', False, del_col)); key += 1
+
+            add_col = None if len(memory['main/lightbar']['layout']) < 99 else FM.light_black
+            print(render_text(str(key), f'Insert new light to the right', False, add_col)); key += 1
+            print(render_text(str(key), f'Duplicate selected light', False, add_col)); key += 1
+
+
+        case 'main/lightbar/layout/color':
+
+            alpha_text = ' '
+            alpha_initial = ''
+            if memory['main/lightbar/layout/color']['alpha']:
+                alpha_text = ', alpha (%) '
+                alpha_initial = 'A'
+
+            if memory['main/lightbar/layout/color']['mode'] == 'select_color_space':
+
+                print(render_text('0', f'Main menu > Lightbar generator > Edit layout > Edit color > Select color', True))
+                print(render_text('1', f'Use HSV{alpha_initial} color space', False))
+                print(render_text('2', f'Use HSL{alpha_initial} color space', False))
+                print(render_text('3', f'Use RGB{alpha_initial} color space / hex', False))
+                print(render_text('4', f'Use CMYK{alpha_initial} color space', False))
+
+                return ''
+
+            elif memory['main/lightbar/layout/color']['mode'] == 'hsva':
+
+                print(render_text('0', f'Main menu > Lightbar generator > Edit layout > Edit color > Set HSV{alpha_initial} color', True))
+                print(render_text('OTHER', f'Input hue (degrees), saturation (%), value (%){alpha_text}separated by a comma...', False))
+
+            elif memory['main/lightbar/layout/color']['mode'] == 'hsla':
+
+                print(render_text('0', f'Main menu > Lightbar generator > Edit layout > Edit color > Set HSL{alpha_initial} color', True))
+                print(render_text('OTHER', f'Input hue (degrees), saturation (%), lightness (%){alpha_text}separated by a comma...', False))
+
+            elif memory['main/lightbar/layout/color']['mode'] == 'rgba':
+
+                print(render_text('0', f'Main menu > Lightbar generator > Edit layout > Edit color > Set RGB{alpha_initial} color', True))
+                print(render_text('OTHER', f'Input red (0-255), green (0-255), blue (0-255){alpha_text}separated by a comma or # followed by a hex code...', False))
+
+            elif memory['main/lightbar/layout/color']['mode'] == 'cmyka':
+
+                print(render_text('0', f'Main menu > Lightbar generator > Edit layout > Edit color > Set CMYK{alpha_initial} color', True))
+                print(render_text('OTHER', f'Input cyan (%), magenta (%), yellow (%), key (aka black) (%){alpha_text}separated by a comma...', False))
+
+        case 'main/lightbar/layout/brightness':
+
+            print(render_text('', f'Main menu > Lightbar generator > Edit layout > Edit brightness', True))
+            print(render_text('ANY', f'Input new brightness (include percentage sign to input a value in percents)...', False))
+
+        case 'main/lightbar/layout/material':
+
+            print(render_text('0', f'Main menu > Lightbar generator > Edit layout > Edit material', True))
+
+            print(render_text('1', f'Glass', False))
+            print(render_text('2', f'CloudyGlass', False))
+            print(render_text('3', f'Glow', False))
+            print(render_text('4', f'LEDMatrix', False))
+
+        case 'main/lightbar/stage':
+
+            stage_id = memory['main/lightbar/stage']['selected']
+            stage = memory['main/lightbar']['lightbar'][stage_id]
+            stage_id_str = str(stage_id + 1).zfill(2)
+
+            key = 0
+
+            print(render_text(str(key), f'Main menu > Lightbar generator > Edit stage {stage_id_str} "{stage['name']}"', True)); key += 1
+
+            print(render_text(str(key), f'Name: {stage["name"]}', False)); key += 1
+            print(render_text('', f'Total duration: {round(stage['layer_duration']*stage['loops']*len(stage['layers'])*1000)}ms', False))
+            print(render_text(str(key), f'Layer duration: {round(stage['layer_duration']*1000)}ms', False)); key += 1
+            print(render_text(str(key), f'Loops: {stage["loops"]}', False)); key += 1
+
+            new_layer_info, new_layer_col = '', None
+            if len(stage['layers']) >= 99:
+                new_layer_info, new_layer_col = ' (layer limit reached)', FM.light_black
+            print(render_text(str(key), f'Add new layer{new_layer_info}', False, new_layer_col)); key += 1
+
+            print(render_text(str(key), f'Remove last layer' if len(stage['layers']) > 1 else 'Disable all bricks', False)); key += 1
+
+            print(render_text('', f'How to edit stages: Input layer\'s id followed by a slash then the brick\'s id. e.g. 2/5', False))
+
+            super_key = 1
+            color_char_table = get_r_lightbar_colors(memory['main/lightbar']['layout'])
+
+            for layer in stage['layers']:
+
+                print(render_text(f'{super_key}/', ' '.join([f'{FM.reverse if layer[i] else ''}{col}{str(i+1).zfill(2)}{FM.reset}' for i, col in enumerate(color_char_table)]), False)); super_key += 1
+
+        case 'main/lightbar/stage/name':
+
+            stage_id = memory['main/lightbar/stage']['selected']
+            stage = memory['main/lightbar']['lightbar'][stage_id]
+            stage_id_str = str(stage_id + 1).zfill(2)
+
+            print(render_text('', f'Main menu > Lightbar generator > Edit stage {stage_id_str} "{stage["name"]}" > Edit name', True))
+            print(render_text('ANY', f'Input new name...', False))
+
+        case 'main/lightbar/stage/layer_duration':
+
+            stage_id = memory['main/lightbar/stage']['selected']
+            stage = memory['main/lightbar']['lightbar'][stage_id]
+            stage_id_str = str(stage_id + 1).zfill(2)
+
+            print(render_text('0', f'Main menu > Lightbar generator > Edit stage {stage_id_str} "{stage["name"]}" > Edit layer duration', True))
+            print(render_text('OTHER', f'Input new layer duration (in milliseconds)...', False))
+
+        case 'main/lightbar/stage/loops':
+
+            stage_id = memory['main/lightbar/stage']['selected']
+            stage = memory['main/lightbar']['lightbar'][stage_id]
+            stage_id_str = str(stage_id + 1).zfill(2)
+
+            print(render_text('0', f'Main menu > Lightbar generator > Edit stage {stage_id_str} "{stage["name"]}" > Edit loops', True))
+            print(render_text('OTHER', f'Input new number of loops...', False))
+
+        case 'main/lightbar/import_from':
+
+            print(render_text('', 'Main menu > Lightbar generator > Import from', True))
+            print(render_text('OTHER', 'Input file name (with extension)...', False))

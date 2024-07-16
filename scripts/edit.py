@@ -16,6 +16,7 @@ def edit(data: dict[str, any], unit: str, port: bool, backup_mode: list[bool], l
     if not os.path.exists(os.path.join(project_path, 'Vehicle.brv')):
         return False, 'vehicle.brv file was not found.'
 
+
     creation = brci.BRCI()
     creation.project_folder_directory = projects_folder_path
     creation.project_name = data['project']
@@ -82,7 +83,7 @@ def edit(data: dict[str, any], unit: str, port: bool, backup_mode: list[bool], l
 
         if data['scale']:
 
-            for prop, val in brick[1]:
+            for prop, val in brick[1].items():
 
                 if prop == 'Position':
 
