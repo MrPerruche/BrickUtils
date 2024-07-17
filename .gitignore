@@ -175,3 +175,8 @@ resources/force_settings.*
 
 */__pycache__/
 */__pycache__/*
+*/*/__pycache__/
+*/*/__pycache__/*
+*/*/*/__pycache__/
+*/*/*/__pycache__/*
+# 3 braincells activities, I know, that stuff is just not working and confusing me
