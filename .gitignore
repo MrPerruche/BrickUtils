@@ -167,5 +167,11 @@ backup/*/*
 !backup/projects/ignore_me.txt
 !backup/brickrigs/ignore_me.txt
 # Projects
-projects/*
+projects/
 !projects/ignore_me.txt
+# Other
+resources/force_settings.*
+
+
+*/__pycache__/
+*/__pycache__/*
