@@ -17,6 +17,8 @@ How to install?
 
 PLEASE READ THE IMPORTANT INFORMATION MENU! IT IS AVAILABLE IN MULTIPLE LANGUAGES.
 
+If you have any feedback, found a bug, need help, or more, join the BRCI Discord server: https://discord.gg/invite/sZXaESzDd9
+
 ## Changelog
 
 ### Update D5
