@@ -6,7 +6,7 @@ import brci
 import shutil
 
 menu: str = 'main'
-version: str = 'D4'
+version: str = 'D5'
 br_version: str = '1.7.2'
 cwd = os.path.dirname(os.path.realpath(__file__))
 
@@ -41,7 +41,7 @@ init_memory: dict[str, any] = {
     'main': {
         'port': [True, True],
         'backup': [True, True],
-        'backup_limit': 10,
+        'backup_limit': 6,
         'system': 'cgs'
     },
     'main/brick': {

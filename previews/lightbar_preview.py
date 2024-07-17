@@ -48,6 +48,12 @@ def main():
     # Loading everything
     memory = load_json(os.path.join(preview_dir, 'lightbar.json'))
 
+    if len(memory['main/lightbar']['lightbar']) < 1:
+        print(render_text('ANY', 'Invalid lightbar', True, FM.light_red))
+        print(render_text('', 'No stages are defined.', False, FM.light_red))
+        input('> ')
+        exit(0)
+
     color_char_table = get_r_lightbar_colors(memory['main/lightbar']['layout'])
 
     stages_duration: list[float] = []

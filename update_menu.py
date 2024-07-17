@@ -1239,6 +1239,11 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
                 return new_menu
 
         if color_space == 'hsva':
+
+            if len(values) != 4:
+                memory['invalid']['return_path'], memory['invalid']['text'] = 'main/brick/properties/color', 'Please specify 4 elements'
+                return 'invalid'
+
             hsv_h = values[0] / 360
             hsv_s = values[1] / 100
             hsv_v = values[2] / 100
@@ -1250,6 +1255,10 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
                 memory['main/brick']['properties'][memory['main/brick/properties/color']['property']] += [hsv_a]
 
         elif color_space == 'hsla':
+
+            if len(values) != 4:
+                memory['invalid']['return_path'], memory['invalid']['text'] = 'main/brick/properties/color', 'Please specify 4 elements'
+                return 'invalid'
 
             # Convert to hsva; we WILL NOT create a function for that in scripts
             hsl_h = values[0] / 360
@@ -1280,6 +1289,11 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
 
             else:
 
+                if len(values) != 4:
+                    memory['invalid']['return_path'], memory['invalid'][
+                        'text'] = 'main/brick/properties/color', 'Please specify 4 elements'
+                    return 'invalid'
+
                 rgb_r = values[0] / 255
                 rgb_g = values[1] / 255
                 rgb_b = values[2] / 255
@@ -1296,6 +1310,10 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
         elif color_space == 'cmyka':
 
             # Convert CYMKA to RGBA
+
+            if len(values) != 5:
+                memory['invalid']['return_path'], memory['invalid']['text'] = 'main/brick/properties/color', 'Please specify 4 elements'
+                return 'invalid'
 
             cmyka_c = values[0] / 100
             cmyka_m = values[1] / 100
@@ -1720,6 +1738,11 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
                 return new_menu
 
         if color_space == 'hsva':
+
+            if len(values) != 4:
+                memory['invalid']['return_path'], memory['invalid']['text'] = 'main/lightbar/layout/color', 'Please specify 4 elements'
+                return 'invalid'
+
             hsv_h = values[0] / 360
             hsv_s = values[1] / 100
             hsv_v = values[2] / 100
@@ -1731,6 +1754,10 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
                 brick['col'] += [hsv_a]
 
         elif color_space == 'hsla':
+
+            if len(values) != 4:
+                memory['invalid']['return_path'], memory['invalid']['text'] = 'main/lightbar/layout/color', 'Please specify 4 elements'
+                return 'invalid'
 
             # Convert to hsva; we WILL NOT create a function for that in scripts
             hsl_h = values[0] / 360
@@ -1761,6 +1788,11 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
 
             else:
 
+                if len(values) != 4:
+                    memory['invalid']['return_path'], memory['invalid'][
+                        'text'] = 'main/lightbar/layout/color', 'Please specify 4 elements'
+                    return 'invalid'
+
                 rgb_r = values[0] / 255
                 rgb_g = values[1] / 255
                 rgb_b = values[2] / 255
@@ -1777,6 +1809,9 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
         elif color_space == 'cmyka':
 
             # Convert CYMKA to RGBA
+            if len(values) != 5:
+                memory['invalid']['return_path'], memory['invalid']['text'] = 'main/lightbar/layout/color', 'Please specify 4 elements'
+                return 'invalid'
 
             cmyka_c = values[0] / 100
             cmyka_m = values[1] / 100
@@ -1937,8 +1972,10 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
             new_menu = 'invalid'
             return new_menu
 
-        if not os.path.exists(lightbar_dir):
+        if not os.path.exists(lightbar_dir) or prompt == '':
             memory['invalid']['text'] = f'{prompt} is missing.'
+            if prompt == '':
+                memory['invalid']['text'] = f'Specify a file to import.'
             memory['invalid']['return_path'] = 'main/lightbar'
             new_menu = 'invalid'
             return new_menu

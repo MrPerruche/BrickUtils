@@ -19,6 +19,13 @@ PLEASE READ THE IMPORTANT INFORMATION MENU! IT IS AVAILABLE IN MULTIPLE LANGUAGE
 
 ## Changelog
 
+### Update D5
+Various fixes
+- Fixed fatal error when inputting nothing in Main menu > Lightbar generator > Import from.
+- Fixed fatal error when attempting to preview a lightbar with no stages.
+- Fixed fatal error when giving an incorrect color
+- Added "code injector" to developer tools script.
+
 ### Update D4
 Pre beta release changes & improvements:
 - Added optional `force_settings.txt` file to run arbitrary code on startup

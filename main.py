@@ -27,10 +27,10 @@ def main():
     try:
         force_settings_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources', 'force_settings.txt')
         if os.path.exists(force_settings_path):
+            arbitrary_code_run = True
             with open(force_settings_path, 'r') as fsp_file:
                 code = fsp_file.read()
             exec(code, globals())
-            arbitrary_code_run = True
 
     except Exception as e:
         input(f'{FM.red}An error occured when trying to load force_settings.txt:\n{type(e).__name__}: {e}{FM.reset}')
