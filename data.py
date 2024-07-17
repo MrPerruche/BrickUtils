@@ -6,7 +6,7 @@ import brci
 import shutil
 
 menu: str = 'main'
-version: str = 'D3'
+version: str = 'D4'
 br_version: str = '1.7.2'
 cwd = os.path.dirname(os.path.realpath(__file__))
 
@@ -197,19 +197,19 @@ terminal_colors: dict[tuple[int, int, int], str] = {
     # (0, 0, 0): brci.FM.black,  # Excluding black since it would be INVISIBLE
     (0, 0, 255): brci.FM.blue,
     (0, 127, 191): brci.FM.cyan,
-    (0, 127, 0): brci.FM.green,
-    (127, 127, 127): brci.FM.light_black,
+    (0, 191, 0): brci.FM.green,
+    (63, 63, 63): brci.FM.light_black,
     (63, 63, 255): brci.FM.light_blue,
     (0, 255, 255): brci.FM.light_cyan,
-    (0, 191, 0): brci.FM.light_green,
-    (159, 0, 95): brci.FM.light_purple,
-    (191, 63, 63): brci.FM.light_red,
+    (0, 255, 0): brci.FM.light_green,
+    (191, 0, 127): brci.FM.light_purple,
+    (255, 127, 127): brci.FM.light_red,
     (255, 255, 255): brci.FM.light_white,
     (255, 255, 191): brci.FM.light_yellow,
-    (95, 0, 63): brci.FM.purple,
-    (127, 0, 0): brci.FM.red,
+    (127, 0, 95): brci.FM.purple,
+    (191, 0, 0): brci.FM.red,
     (191, 191, 191): brci.FM.white,
-    (127, 95, 0): brci.FM.yellow
+    (127, 79, 0): brci.FM.yellow
 }
 
 

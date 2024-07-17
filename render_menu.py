@@ -8,7 +8,8 @@ cwd = os.path.dirname(os.path.realpath(__file__))
 
 
 def clear_terminal():
-    os.system('cls' if os.name == 'nt' else 'clear')
+    # os.system('cls' if os.name == 'nt' else 'clear')
+    print("\033[H\033[J", end='')
 
 
 def bool_to_yes_no(value: bool) -> str:
@@ -27,11 +28,19 @@ def render_text(pre_text: str, text: str, is_menu: bool, color: str | None = Non
     return f'{color_}{FM.reverse} {pre_text} {menu_highlight} {text} {FM.remove_color}{FM.remove_reverse}'
 
 
-def render_menu(menu: str, memory: dict[str, any]) -> str:
+def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_code: bool) -> str:
 
     clear_terminal()
 
     unit = memory['main']['system']
+
+
+    if not safe_mode:
+        print(render_text('WARN', 'Safe mode is disabled!', False, FM.yellow))
+    if arbitrary_code:
+        print(render_text('WARN', 'Arbitrary code was run from force_settings.txt', False, FM.yellow))
+
+
     match menu:
 
         case 'invalid':
@@ -383,8 +392,10 @@ def render_menu(menu: str, memory: dict[str, any]) -> str:
                 r_system = 'si system (système international)'
             elif memory['main/settings']['new_main']['system'] == 'imperial':
                 r_system = 'imperial system'
-            else: # if memory['main/settings']['new_main']['system'] == 'scal':
+            elif memory['main/settings']['new_main']['system'] == 'scal':
                 r_system = 'scalable bricks / si system'
+            else: # if memory['main/settings']['new_main']['system'] == 'stud' # secret system for peculiar applications
+                r_system = f'"{memory["main/settings"]["new_main"]["system"]}" system'
 
             print(render_text('1', f'Porting mode: {r_porting_mode}', False))
             print(render_text('2', f'Backup mode: {r_backup}', False))
