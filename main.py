@@ -6,8 +6,30 @@ import render_menu
 import os.path
 import ctypes
 
-kernel32 = ctypes.windll.kernel32
-kernel32.SetConsoleTitleW("BrickUtils")
+# Welcome to hell
+# Please go to bed before you hate me
+# You got something better to do in life that look at this disaster, right ?
+
+icon_path = os.path.join(cwd, 'resources', 'brick_utils.ico')
+
+def set_console_icon(icon_path):
+    user32 = ctypes.windll.user32
+    kernel32 = ctypes.windll.kernel32
+
+    IMAGE_ICON = 1
+    LR_LOADFROMFILE = 0x00000010
+    icon = user32.LoadImageW(None, icon_path, IMAGE_ICON, 0, 0, LR_LOADFROMFILE)
+    kernel32.SetConsoleTitleW("BrickUtils")
+
+    WM_SETICON = 0x80
+    ICON_SMALL = 0
+    user32.SendMessageW(kernel32.GetConsoleWindow(), WM_SETICON, ICON_SMALL, icon)
+
+    # Allow multiline inputs
+    kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+
+
+set_console_icon(icon_path)
 
 
 memory = deepcopy(init_memory)

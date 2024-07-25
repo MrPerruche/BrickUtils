@@ -2,6 +2,12 @@ import os
 from brci import FM, deepcopy
 from data import version, br_version, get_len_unit, clen_str, str_connector, str_int_dir, match_color, render_lightbar
 from data import get_r_lightbar_colors
+import re
+
+
+# Everything regarding print() here. This part is... alright, I guess.
+# I really don't see much to say here. It's not in order, but it's not too bad.
+# I ate cereals today.
 
 
 cwd = os.path.dirname(os.path.realpath(__file__))
@@ -79,8 +85,10 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
             print(render_text('4', 'Lightbar generator', False))
             print(render_text('5', 'Creation editor', False))
             print(render_text('6', 'Rotation rounder (planned)', False, FM.light_red))
-            print(render_text('7', 'Settings', False))
-            print(render_text('8', 'Important information', False))
+            # here menu where you can encrypt / decrypt files
+            print(render_text('7', 'Encrypt / Decrypt project', False))
+            print(render_text('8', 'Settings', False))
+            print(render_text('9', 'Important information', False))
 
         case 'main/arc':
 
@@ -449,6 +457,8 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
 
                 print(render_text(str(key), f'Scale relevant non-size related properties: {bool_to_yes_no(memory["main/edit"]["scale_extras"])}', False)); key += 1
 
+            print(render_text('WARN', 'Rotation is not working correctly. That\'s why it\'s in red.', False, FM.yellow))
+
             print(render_text(str(key), f'Rotate: {bool_to_yes_no(memory["main/edit"]["rotate"])}', False, FM.light_red)); key += 1
             if memory["main/edit"]["rotate"]:
 
@@ -522,7 +532,7 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
 
         case 'main/brick/project':
 
-            print(render_text('0', 'Main menu > Brick generator > Project name', True))
+            print(render_text('', 'Main menu > Brick generator > Project name', True))
             print(render_text('ANY', f'Input new project name...', False))
 
         case 'main/brick/select_brick':
@@ -956,3 +966,94 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
 
             print(render_text('', 'Main menu > Lightbar generator > Import from', True))
             print(render_text('OTHER', 'Input file name (with extension)...', False))
+
+        case 'main/encrypt':
+
+            print(render_text('0', 'Main menu > Encrypt / Decrypt project', True))
+            print(render_text('1', f'Project: {memory['main/encrypt']['project']}', False))
+
+
+
+            pw = memory['main/encrypt']['password']
+            password = pw
+
+            pass_key, pass_msg = 'ANY', 'Hide password'
+            if not memory['main/encrypt']['see_password']:
+                password = '*' * len(password)
+                pass_key, pass_msg = '3', 'See password'
+
+            excess_password = max(0, (len(password) - 80))
+            if excess_password > 0:
+                excess = excess_password + 3
+                password_end = password[-10:]
+                password = password[:- (10 + excess)]
+                password += f'{FM.light_black}...{FM.remove_color}{password_end} {FM.light_black}({len(pw)})'
+
+            print(render_text('2', f'Password: {password}', False))
+
+            password_strength: int = 0
+            if len(pw) > 11: password_strength += 1  # If long
+            if len(pw) > 31: password_strength += 1  # If very long
+            if len(pw) > 127: password_strength += 1  # If extremely long
+            if pw.lower() != pw: password_strength += 1  # If caps in password
+            if re.search(r'\d', pw): password_strength += 1  # If numbers in password
+            if re.search(r'\W', pw): password_strength += 1  # If special chars in password
+            info = ''
+            if password_strength == 0: info = 'Insufficient'
+            elif password_strength == 1: info = 'Very weak'
+            elif password_strength == 2: info = 'Weak'
+            elif password_strength == 3: info = 'Mild'
+            elif password_strength == 4: info = 'Fairly strong'
+            elif password_strength == 5: info = 'Extremely strong'
+            else: info = 'Practically invulnerable'
+
+            print(render_text('', f'Password strength: {password_strength}/6 ({info})', False))
+            print(render_text(pass_key, pass_msg, False))
+            memory['main/encrypt']['see_password'] = False
+
+
+            print(render_text('4', 'Generate a safe password', False))
+            print(render_text('5', 'BrickUtils\' encryption method is not flawless. Learn more...', False))
+            print(render_text('6', 'Encrypt vehicle', False))
+            print(render_text('7', 'Decrypt vehicle', False))
+
+        case 'main/encrypt/project':
+
+            print(render_text('', 'Main menu > Encrypt / Decrypt project > Edit selected project', True))
+            print(render_text('ANY', 'Input new project name...', False))
+
+        case 'main/encrypt/password':
+
+            if not memory['main/encrypt/password']['repeat']:
+                print(render_text('', 'Main menu > Encrypt / Decrypt project > Edit password', True))
+                print(render_text('ANY', 'Input new password...', False))
+            else:
+                print(render_text('NPREV', 'Main menu > Encrypt / Decrypt project > Edit password', True))
+                print(render_text('OTHER', 'Input new password again...', False))
+
+        case 'main/encrypt/generate':
+
+            pw = memory['main/encrypt/generate']['password']
+            password = pw
+
+            excess_password = max(0, (len(password) - 80))
+            if excess_password > 0:
+                excess = excess_password + 3
+                password_end = password[-10:]
+                password = password[:- (10 + excess)]
+                password += f'{FM.light_black}...{FM.remove_color}{password_end} {FM.light_black}({len(pw)})'
+
+
+            print(render_text('0', 'Main menu > Encrypt / Decrypt project > Generate password', True))
+            print(render_text('', f'Suggested: {password}', False))
+            print(render_text('1', 'Use and copy to clipboard', False))
+            print(render_text('2', 'Copy to clipboard', False))
+
+        case 'main/encrypt/info':
+
+            print(render_text('0', 'Main menu > Encrypt / Decrypt project > Learn more', True))
+            print(render_text('', 'Do not use it to encrypt high risk files.. or nuclear codes.', False))
+            print(render_text('', 'How to make your password safer:', False))
+            print(render_text('', 'Make your password extremely long, use caps, numbers and special characters', False))
+            print(render_text('', 'The password must be unique. Do not reuse it for another file.', False))
+

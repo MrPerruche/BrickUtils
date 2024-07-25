@@ -263,8 +263,8 @@ def scalable_rle(data: dict[str, any], port: bool, backup_mode: list[bool], limi
             a_ = round(a, 1)
             glass_a = 0.1
             cloudy_glass_a = 0.3
-            glass: int = (a_ % cloudy_glass) // glass_a
             cloudy_glass: int = a_ // cloudy_glass_a
+            glass: int = (a_ % cloudy_glass) // glass_a
             for _ in range(glass):
                 materials.append('Glass')
             for _ in range(cloudy_glass):
@@ -308,7 +308,7 @@ def scalable_rle(data: dict[str, any], port: bool, backup_mode: list[bool], limi
     try:
         creation.write_brv()
     except Exception as e:
-        return False, f'it appears vehicle generation failed. Try updating BrickUtils, or if no update is available, BRCI.\n({type(e).__name__}: {e})'
+        return False, f'vehicle generation failed for unknown reasons. Try updating BrickUtils, or if no update is available, BRCI.\n({type(e).__name__}: {e})'
     # Port
 
     backup_success, backup_message = generate_backup(creation, backup_mode, limit)

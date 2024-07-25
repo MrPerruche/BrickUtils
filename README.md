@@ -21,17 +21,27 @@ If you have any feedback, found a bug, need help, or more, join the BRCI Discord
 
 ## Changelog
 
+### Update D6
+Added encryption / decryption:
+- Added a basic .brv (en/de)cryptor.
+- Added a warning regarding rotation not working in the edit menu.
+- Added to BrickUtils' window its own icon.
+- Started working on lightbar generation.
+- Fixed incorrect input labels when editing the selected project in the brick generator.
+- Fixed incorrect punctuation in the changelog.
+- \* BrickUtils D2 and newer fully support Brick Rigs 1.7.3b.
+
 ### Update D5
-Various fixes
+Various fixes:
 - Fixed fatal error when inputting nothing in Main menu > Lightbar generator > Import from.
 - Fixed fatal error when attempting to preview a lightbar with no stages.
-- Fixed fatal error when giving an incorrect color
+- Fixed fatal error when giving an incorrect color.
 - Added "code injector" to developer tools script.
 
 ### Update D4
 Pre beta release changes & improvements:
-- Added optional `force_settings.txt` file to run arbitrary code on startup
+- Added optional `force_settings.txt` file to run arbitrary code on startup.
 - Clearing terminal now use escape codes, which are faster.
-- Revised lightbar preview menu
-- A few fixes
-- Finally enabled `safe_mode` by default
+- Revised lightbar preview menu.
+- A few fixes.
+- Finally enabled `safe_mode` by default.

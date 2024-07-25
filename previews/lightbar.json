@@ -1,6 +1,6 @@
 {
     "main/lightbar": {
-        "project": "us_police_lightbar",
+        "project": "",
         "layout": [
             {
                 "col": [
@@ -14,9 +14,9 @@
             },
             {
                 "col": [
-                    85,
-                    255,
-                    255,
+                    162,
+                    247,
+                    204,
                     255
                 ],
                 "brightness": 0.5,
@@ -84,9 +84,9 @@
             },
             {
                 "col": [
-                    212,
-                    255,
-                    255,
+                    1,
+                    252,
+                    117,
                     255
                 ],
                 "brightness": 0.5,
@@ -106,8 +106,8 @@
         "lightbar": [
             {
                 "name": "Alternating checkerboard pattern",
-                "layer_duration": 0.15,
-                "loops": 8,
+                "layer_duration": 0.2,
+                "loops": 6,
                 "layers": [
                     [
                         true,
@@ -132,61 +132,6 @@
                         true,
                         false,
                         true
-                    ]
-                ]
-            },
-            {
-                "name": "2/-2/2/-2/1/-1 Running lights",
-                "layer_duration": 0.1,
-                "loops": 4,
-                "layers": [
-                    [
-                        true,
-                        true,
-                        false,
-                        false,
-                        true,
-                        true,
-                        false,
-                        false,
-                        true,
-                        false
-                    ],
-                    [
-                        false,
-                        true,
-                        true,
-                        false,
-                        false,
-                        true,
-                        true,
-                        false,
-                        false,
-                        true
-                    ],
-                    [
-                        true,
-                        false,
-                        true,
-                        true,
-                        false,
-                        false,
-                        true,
-                        true,
-                        false,
-                        false
-                    ],
-                    [
-                        false,
-                        true,
-                        false,
-                        true,
-                        true,
-                        false,
-                        false,
-                        true,
-                        true,
-                        false
                     ]
                 ]
             }

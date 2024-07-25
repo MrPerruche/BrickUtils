@@ -5,6 +5,8 @@ print('2: convert u8 hsva to hsva')
 print('3: reset config.json')
 print('4: create code injector')
 
+# too lazy
+
 import os
 
 tool = input()

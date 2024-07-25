@@ -4,10 +4,21 @@ import json
 from datetime import datetime
 import brci
 import shutil
+import hashlib
+import subprocess
+from random import choice, randint
+from secrets import choice as choice_safe
+import string
+
+# A bunch of hardcoded values here, as well as function used in several scripts.
+# There's a bunch of warnings here. I haven't figured them out, but it seems everything works. Maybe a bug with my IDE.
+# - Functions have the dumbest names possible: match_color(), get_len_unit(), get_r_lightbar_colors(), clen_str(), ...
+# - There's no comments even in the most confusing parts
+# - I use list comprehension a bit too much. Maybe I shouldn't have, but it's fun to write.
 
 menu: str = 'main'
-version: str = 'D5'
-br_version: str = '1.7.2'
+version: str = 'D6'
+br_version: str = '1.7.3b'
 cwd = os.path.dirname(os.path.realpath(__file__))
 
 with open(os.path.join(cwd, 'resources', 'user_react_list.txt'), 'r') as f:
@@ -22,6 +33,9 @@ with open(os.path.join(cwd, 'resources', 'user_react_list.txt'), 'r') as f:
 
 with open(os.path.join(cwd, 'resources', 'char_blacklist.txt'), 'r') as f:
     char_blacklist = [*f.read().split('\n'), ' ']
+
+with open(os.path.join(cwd, 'resources', 'password_protected.brv'), 'rb') as f:
+    password_protected_brv: bytearray = bytearray(f.read())
 
 
 # Setup Menu Memory
@@ -146,6 +160,7 @@ init_memory: dict[str, any] = {
     },
     'main/lightbar': {
         'project': '',
+        'file_name': 'lightbar.json',
         'layout': [
             {'col': [162, 247, 204, 255], 'brightness': 0.5, 'material': 'LEDMatrix'},
             {'col': [162, 247, 204, 255], 'brightness': 0.5, 'material': 'LEDMatrix'},
@@ -172,6 +187,18 @@ init_memory: dict[str, any] = {
     },
     'main/rot': {
 
+    },
+    'main/encrypt': {
+        'project': '',
+        'password': '',
+        'see_password': False
+    },
+    'main/encrypt/password': {
+        'repeat': False,
+        'pre_pass': ['', '']
+    },
+    'main/encrypt/generate': {
+        'password': ''
     },
     'main/settings': {
         'new_main': {}
@@ -211,6 +238,118 @@ terminal_colors: dict[tuple[int, int, int], str] = {
     (191, 191, 191): brci.FM.white,
     (127, 79, 0): brci.FM.yellow
 }
+
+
+def hash_password(password: str | bytes, method: str = 'sha512-r') -> bytearray:
+
+    # yes, my iq can be measured with a pH strip
+
+    bin_password: bytes = password.encode('utf-8') if isinstance(password, str) else password
+
+    hash_pass: bytes = b'\x00'
+
+    if method == 'sha512-r':
+        hash_pass = bin_password
+        for _ in range(206_183):
+            hash_pass: bytes = hashlib.sha512(hash_pass).digest()
+
+    elif method == 'sha512':
+        hash_pass: bytes = hashlib.sha512(bin_password).digest()
+
+    return bytearray(hash_pass)
+
+
+def xor_encrypt(data: bytearray, pw: bytearray) -> bytes:
+    """
+    :param data: File
+    :param pw: Password
+    :return: Xor encrypted file
+    """
+    # These things are stupid it's the last time I'm making one of these comments
+
+    return bytes([data[i] ^ pw[i % len(pw)] for i in range(len(data))])
+
+
+def xor_rand_encrypt(data: bytearray, xor_pw: bytearray, rand_pw: bytearray, undo: bool = False) -> bytes:
+
+    rand_pw_l = [bit == '1' for byte in rand_pw for bit in '{:08b}'.format(byte)]
+    input(rand_pw_l)
+    result = bytearray()
+
+    if not undo:
+        rand_xor_current_bits = []
+
+        xor_file = bytearray([data[i] ^ xor_pw[i % len(xor_pw)] for i in range(len(data))])
+        cur_bit = 0
+
+        for xf_byte in xor_file:
+
+            xf_bits = [(xf_byte >> i) & 1 for i in range(7, -1, -1)]
+
+            for j in range(8):
+
+                rand_xor_current_bits.append(xf_bits[j])
+
+                if rand_pw_l[cur_bit % len(rand_pw_l)]:
+                    pass
+                    rand_xor_current_bits.append(choice([0, 1]))
+
+                cur_bit += 1
+
+            while len(rand_xor_current_bits) >= 8:
+                bits_as_int = sum(bit << (7 - i) for i, bit in enumerate(rand_xor_current_bits[:8]))
+                # input(f'{bits_as_int=}, {rand_xor_current_bits[:8]=}, {dict(enumerate(rand_xor_current_bits[:8]))=}')
+                result += bits_as_int.to_bytes(1, 'big')
+                del rand_xor_current_bits[:8]
+
+
+    else:  # if undo
+
+        rand_xor_current_bits = []
+        # cur_bit = 0 - 1
+        rand_file = bytearray()
+        pass_input = False
+        rand_pw_l_use = []
+
+        for xf_byte in data:
+
+            xf_bits = [(xf_byte >> i) & 1 for i in range(7, -1, -1)]
+
+            for j in range(8):
+
+                if pass_input:
+                    pass_input = False
+                    continue
+
+                rand_xor_current_bits.append(xf_bits[j])
+
+                if not rand_pw_l_use:
+                    rand_pw_l_use = rand_pw_l.copy()
+
+                if rand_pw_l_use[0]:
+                    pass_input = True
+                del rand_pw_l_use[0]
+
+            while len(rand_xor_current_bits) >= 8:
+                bits_as_int = sum(bit << (7 - i) for i, bit in enumerate(rand_xor_current_bits[:8]))
+                rand_file += bits_as_int.to_bytes(1, 'big')
+                del rand_xor_current_bits[:8]
+
+
+        result = bytearray([rand_file[i] ^ xor_pw[i % len(xor_pw)] for i in range(len(rand_file))])
+
+    return result
+
+
+def return_password(min_length: int, max_length: int) -> str:
+    alphabet = string.ascii_letters + string.digits + string.punctuation.replace('`', '')
+    length = randint(min_length, max_length)
+    return ''.join(choice_safe(alphabet) for _ in range(length))
+
+
+def set_clipboard(text: str):
+    process = subprocess.Popen('clip', stdin=subprocess.PIPE, text=True)
+    process.communicate(text)
 
 
 def match_color(rgb: list[int]):
@@ -303,7 +442,7 @@ def generate_backup(creation: brci.BRCI, behavior: list[bool], limit: int) -> (b
         creation.backup(str(time))
 
     try:
-        projects_backup_dir_names: list[int] = [int(directory) for directory in os.listdir(projects_backup_path)]
+        projects_backup_dir_names: list[int] = [int(directory) for directory in os.listdir(projects_backup_path) if directory.isnumeric()]
     except ValueError:
         return False, f'backup failed. All directories in backup/projects must be integers.'
     elements_in_projects_backup = len(projects_backup_dir_names)
@@ -313,7 +452,7 @@ def generate_backup(creation: brci.BRCI, behavior: list[bool], limit: int) -> (b
             shutil.rmtree(os.path.join(projects_backup_path, deleted_file))
 
     try:
-        br_backup_dir_names: list[int] = [int(directory) for directory in os.listdir(br_backup_path)]
+        br_backup_dir_names: list[int] = [int(directory) for directory in os.listdir(br_backup_path) if directory.isnumeric()]
     except ValueError:
         return False, f'backup failed. All directories in backup/brickrigs must be integers.'
     elements_in_br_backup = len(br_backup_dir_names)
@@ -468,4 +607,9 @@ def i_float(i: str) -> float:
                 i_ = i_.replace(oom_, '', 1)
                 oom += val
 
-        return float(i_) * (10 ** oom)
+        exp = 1
+        if i_.startswith('/'):
+            exp = -1
+            i_ = i_.replace('/', '')
+
+        return (float(i_) * (10 ** oom)) ** exp
