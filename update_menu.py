@@ -2,7 +2,8 @@ import os
 from brci import BrickInput
 from copy import deepcopy
 from data import (react_dict, char_blacklist, clen, init_memory, i_int, i_float, cwd, save_json, load_json,
-                  multi_replace, convert_length, password_protected_brv, return_password, set_clipboard)
+                  multi_replace, convert_length, password_protected_brv, return_password, set_clipboard,
+                  is_valid_folder_name)
 import colorsys
 import scripts
 import math
@@ -101,7 +102,10 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
 
         elif prompt == '5':
 
-            new_menu = 'main/edit'
+            # new_menu = 'main/edit'
+            memory['invalid']['return_path'] = 'main'
+            memory['invalid']['text'] = 'Creation editor is not functional yet.'
+            new_menu = 'invalid'
 
         elif prompt == '6':
 
@@ -364,6 +368,18 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
             int_prompt -= 1
 
             if int_prompt == 0:
+
+                if not is_valid_folder_name(memory['main/pixelart']['project']):
+                    memory['invalid']['text'] = 'This project name is invalid (likely unfilled).'
+                    memory['invalid']['return_path'] = 'main/pixelart'
+                    new_menu = 'invalid'
+                    return new_menu
+                if memory['main/pixelart']['image'] in {'', ' '}:
+                    memory['invalid']['text'] = 'Please fill image field.'
+                    memory['invalid']['return_path'] = 'main/pixelart'
+                    new_menu = 'invalid'
+                    return new_menu
+
                 # noinspection PyUnusedLocal
                 success, return_data = False, 0
                 """
@@ -718,6 +734,17 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
             save_json('config.json', memory['main'])
             new_menu = 'main'
 
+
+        elif prompt == '9':
+
+            # Taken from debug_tools.py
+
+            sr_source = os.path.join(cwd, 'resources', 'default_config')  # has no extension
+            sr_new_path = os.path.join(cwd, 'config.json')
+
+            memory['main/settings']['new_main'] = load_json(sr_source)
+
+
     elif menu == 'main/settings/backup_limit':
 
         if prompt == '0':
@@ -740,217 +767,6 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
             memory['invalid']['text'] = f"Backup limit must be a number greater than or equal to 0."
             new_menu = 'invalid'
 
-    elif menu == 'main/edit':
-
-        try:
-            int_prompt = int(prompt)
-        except ValueError:
-            return new_menu
-
-        if int_prompt == 0:
-            new_menu = 'main'
-            return new_menu
-        int_prompt -= 1
-
-        if int_prompt == 0:
-            new_menu = 'main/edit/project'
-            return new_menu
-        int_prompt -= 1
-
-        if int_prompt == 0:
-            memory['main/edit']['move'] = not memory['main/edit']['move']
-        int_prompt -= 1
-
-        if memory['main/edit']['move']:
-            if int_prompt == 0:
-                new_menu = 'main/edit/off_x'
-            int_prompt -= 1
-
-            if int_prompt == 0:
-                new_menu = 'main/edit/off_y'
-            int_prompt -= 1
-
-            if int_prompt == 0:
-                new_menu = 'main/edit/off_z'
-            int_prompt -= 1
-
-        if int_prompt == 0:
-            memory['main/edit']['scale'] = not memory['main/edit']['scale']
-        int_prompt -= 1
-
-        if memory['main/edit']['scale']:
-            if int_prompt == 0:
-                new_menu = 'main/edit/scale_x'
-            int_prompt -= 1
-
-            if int_prompt == 0:
-                new_menu = 'main/edit/scale_y'
-            int_prompt -= 1
-
-            if int_prompt == 0:
-                new_menu = 'main/edit/scale_z'
-            int_prompt -= 1
-
-            if int_prompt == 0:
-                if memory['main/edit']['adapt_connections'] == 'no':
-                    memory['main/edit']['adapt_connections'] = 'delete'
-                elif memory['main/edit']['adapt_connections'] == 'delete':
-                    memory['main/edit']['adapt_connections'] = 'yes'
-                else: # if memory['main/edit']['adjust_connections'] == 'yes':
-                    memory['main/edit']['adapt_connections'] = 'no'
-            int_prompt -= 1
-
-            if int_prompt == 0:
-                memory['main/edit']['scale_extras'] = not memory['main/edit']['scale_extras']
-            int_prompt -= 1
-
-        if int_prompt == 0:
-            memory['main/edit']['rotate'] = not memory['main/edit']['rotate']
-        int_prompt -= 1
-
-        if memory['main/edit']['rotate']:
-            if int_prompt == 0:
-                new_menu = 'main/edit/rot_x'
-            int_prompt -= 1
-
-            if int_prompt == 0:
-                new_menu = 'main/edit/rot_y'
-            int_prompt -= 1
-
-            if int_prompt == 0:
-                new_menu = 'main/edit/rot_z'
-            int_prompt -= 1
-
-        if int_prompt == 0:
-            memory['main/edit']['clear_duplicates'] = not memory['main/edit']['clear_duplicates']
-        int_prompt -= 1
-
-        if int_prompt == 0:
-            # noinspection PyUnusedLocal
-            success, return_data = False, ''
-            try:
-                success, return_data = scripts.edit.edit(memory['main/edit'], unit, memory['main']['port'][1], memory['main']['backup'], memory['main']['backup_limit'])
-            except Exception as e:
-                memory['invalid']['return_path'] = 'main/edit'
-                memory['invalid']['text'] = f'Failed to modify creation (An unexpected error occured!).\n{type(e).__name__}: {e}'
-                new_menu = 'invalid'
-                return new_menu
-            if success:
-                memory['success']['return_path'] = 'main/edit'
-                memory['success']['text'] = f'Successfully modified \'{memory['main/edit']['project']}\' {return_data}'
-                new_menu = 'success'
-            else:
-                memory['invalid']['return_path'] = 'main/edit'
-                memory['invalid']['text'] = f'Failed to modify creation: {return_data}.'
-                new_menu = 'invalid'
-
-        int_prompt -= 1
-
-    elif menu == 'main/edit/off_x':
-
-        try:
-            memory['main/edit']['off_x'] = clen(prompt, unit)
-            new_menu = 'main/edit'
-
-        except ValueError:
-            memory['invalid']['return_path'] = 'main/edit'
-            memory['invalid']['text'] = f"Offset on the x axis must be a number."
-            new_menu = 'invalid'
-
-    elif menu == 'main/edit/off_y':
-
-        try:
-            memory['main/edit']['off_y'] = clen(prompt, unit)
-            new_menu = 'main/edit'
-
-        except ValueError:
-            memory['invalid']['return_path'] = 'main/edit'
-            memory['invalid']['text'] = f"Offset on the y axis must be a number."
-            new_menu = 'invalid'
-
-    elif menu == 'main/edit/off_z':
-
-        try:
-            memory['main/edit']['off_z'] = clen(prompt, unit)
-            new_menu = 'main/edit'
-
-        except ValueError:
-            memory['invalid']['return_path'] = 'main/edit'
-            memory['invalid']['text'] = f"Offset on the z axis must be a number."
-            new_menu = 'invalid'
-
-    elif menu == 'main/edit/scale_x':
-
-        try:
-            memory['main/edit']['scale_x'] = i_float(prompt)
-            new_menu = 'main/edit'
-
-        except ValueError:
-            memory['invalid']['return_path'] = 'main/edit'
-            memory['invalid']['text'] = f"Scale on the x axis must be a number."
-            new_menu = 'invalid'
-
-    elif menu == 'main/edit/scale_y':
-
-        try:
-            memory['main/edit']['scale_y'] = i_float(prompt)
-            new_menu = 'main/edit'
-
-        except ValueError:
-            memory['invalid']['return_path'] = 'main/edit'
-            memory['invalid']['text'] = f"Scale on the y axis must be a number."
-            new_menu = 'invalid'
-
-    elif menu == 'main/edit/scale_z':
-
-        try:
-            memory['main/edit']['scale_z'] = i_float(prompt)
-            new_menu = 'main/edit'
-
-        except ValueError:
-            memory['invalid']['return_path'] = 'main/edit'
-            memory['invalid']['text'] = f"Scale on the z axis must be a number."
-
-    elif menu == 'main/edit/rot_x':
-
-        try:
-            memory['main/edit']['rot_x'] = i_float(prompt)
-            new_menu = 'main/edit'
-
-        except ValueError:
-            memory['invalid']['return_path'] = 'main/edit'
-            memory['invalid']['text'] = f"Rotation on the x axis must be a number."
-
-    elif menu == 'main/edit/rot_y':
-
-        try:
-            memory['main/edit']['rot_y'] = i_float(prompt)
-            new_menu = 'main/edit'
-
-        except ValueError:
-            memory['invalid']['return_path'] = 'main/edit'
-            memory['invalid']['text'] = f"Rotation on the y axis must be a number."
-
-    elif menu == 'main/edit/rot_z':
-
-        try:
-            memory['main/edit']['rot_z'] = i_float(prompt)
-            new_menu = 'main/edit'
-
-        except ValueError:
-            memory['invalid']['return_path'] = 'main/edit'
-            memory['invalid']['text'] = f"Rotation on the z axis must be a number."
-
-    elif menu == 'main/edit/project':
-
-        try:
-            memory['main/edit']['project'] = prompt
-            new_menu = 'main/edit'
-
-        except ValueError:
-            memory['invalid']['return_path'] = 'main/edit'
-            memory['invalid']['text'] = f"Congrats! You somehow made project name invalid."
-
     elif menu == 'main/brick':
 
         if prompt == '0':
@@ -970,6 +786,12 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
             new_menu = 'main/brick/properties'
 
         elif prompt == '4':
+
+            if not is_valid_folder_name(memory['main/brick']['project']):
+                memory['invalid']['text'] = 'This project name is invalid (likely unfilled).'
+                memory['invalid']['return_path'] = 'main/brick'
+                new_menu = 'invalid'
+                return new_menu
 
             success, output_message = scripts.brick.generate(memory['main/brick'], memory['main']['port'][0], memory['main']['backup'], memory['main']['backup_limit'])
 
@@ -1637,6 +1459,12 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
 
         if int_prompt == 0:
 
+            if not is_valid_folder_name(memory['main/lightbar']['project']):
+                memory['invalid']['text'] = 'This project name is invalid (likely unfilled).'
+                memory['invalid']['return_path'] = 'main/lightbar'
+                new_menu = 'invalid'
+                return new_menu
+
             scripts.lightbar.generate(memory['main/lightbar'], memory['main']['port'][0], memory['main']['backup'], memory['main']['backup_limit'])
 
 
@@ -2050,6 +1878,12 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
 
         elif prompt == '6':
 
+            if not is_valid_folder_name(memory['main/encrypt']['project']):
+                memory['invalid']['text'] = 'This project name is invalid (likely unfilled).'
+                memory['invalid']['return_path'] = 'main/encrypt'
+                new_menu = 'invalid'
+                return new_menu
+
             success, message = False, ''
 
             try:
@@ -2069,6 +1903,12 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
                 new_menu = 'invalid'
 
         elif prompt == '7':
+
+            if not is_valid_folder_name(memory['main/encrypt']['project']):
+                memory['invalid']['text'] = 'This project name is invalid (likely unfilled).'
+                memory['invalid']['return_path'] = 'main/encrypt'
+                new_menu = 'invalid'
+                return new_menu
 
             success, message = False, ''
 
@@ -2130,5 +1970,95 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
 
             new_menu = 'main/encrypt'
 
+    elif menu == 'main/edit':
+
+        try:
+            int_prompt = int(prompt)
+        except ValueError:
+            return new_menu
+
+        if int_prompt == 0:
+            new_menu = 'main'
+            return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+            new_menu = 'main/edit/project'
+            return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+            if memory['main/edit']['move'] is None:
+                memory['main/edit']['move'] = [0.0, 0.0, 0.0]
+            else:
+                new_menu = 'main/edit/move'
+                return new_menu
+        int_prompt -= 1
+
+        #TODO
+
+
+    elif menu == 'main/edit/project':
+
+        try:
+            memory['main/edit']['project'] = prompt
+            new_menu = 'main/edit'
+
+        except ValueError:
+            memory['invalid']['return_path'] = 'main/edit'
+            memory['invalid']['text'] = f"Congrats! You somehow made project name invalid."
+
+    elif menu == 'main/edit/move':
+
+        if prompt == '0':
+
+            new_menu = 'main/edit'
+
+        elif prompt == '1':
+
+            new_menu = 'main/edit/move/x'
+
+        elif prompt == '2':
+
+            new_menu = 'main/edit/move/y'
+
+        elif prompt == '3':
+
+            new_menu = 'main/edit/move/z'
+
+        elif prompt == '4':
+
+            memory['main/edit']['move'] = None
+            new_menu = 'main/edit'
+
+    elif menu == 'main/edit/move/x':
+
+        try:
+            memory['main/edit']['move'][0] = clen(prompt, unit)
+            new_menu = 'main/edit/move'
+        except ValueError:
+            memory['invalid']['return_path'] = 'main/edit/move'
+            memory['invalid']['text'] = "Offset on X axis must be a number."
+            new_menu = 'invalid'
+
+    elif menu == 'main/edit/move/y':
+
+        try:
+            memory['main/edit']['move'][1] = clen(prompt, unit)
+            new_menu = 'main/edit/move'
+        except ValueError:
+            memory['invalid']['return_path'] = 'main/edit/move'
+            memory['invalid']['text'] = "Offset on Y axis must be a number."
+            new_menu = 'invalid'
+
+    elif menu == 'main/edit/move/z':
+
+        try:
+            memory['main/edit']['move'][2] = clen(prompt, unit)
+            new_menu = 'main/edit/move'
+        except ValueError:
+            memory['invalid']['return_path'] = 'main/edit/move'
+            memory['invalid']['text'] = "Offset on Z axis must be a number."
+            new_menu = 'invalid'
 
     return new_menu

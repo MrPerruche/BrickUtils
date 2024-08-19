@@ -4,7 +4,7 @@ from copy import deepcopy
 from datetime import datetime
 from time import perf_counter
 from math import ceil
-import re
+import re, shutil
 
 from .BRCI_RF import *
 
@@ -20,7 +20,7 @@ from .BRCI_RF import *
 
 
 # Setup variables
-_version: str = "C51"  # String, This is equivalent to 3.__ fyi
+_version: str = "C54"  # String, This is equivalent to 3.__ fyi
 
 # Important variables
 _cwd = os.path.dirname(os.path.realpath(__file__))  # File Path
@@ -80,6 +80,7 @@ class BRCI:
         # Set each self.x variable to their __init__ counterparts
         self.project_folder_directory = project_folder_directory  # Path
         self.project_name = project_name  # String
+        assert project_name.lower() != "vehicles", "Invalid project name."
         self.write_blank = write_blank  # Boolean
         self.project_display_name = project_display_name  # String (in-game name (.brm))
         self.file_description = file_description  # String (The description of the file (.brm))
@@ -294,6 +295,18 @@ class BRCI:
             return {brick[0]: brick[1] for brick in self.bricks}
 
         return self.bricks
+    
+    if numpy_features_enabled:
+        def rotate_creation(self, center: list[float], rotation: list[float]):
+            for brick in self.bricks:
+                brick[1]["Position"] = rotate_point_3d(brick[1]["Position"], center, rotation)
+                brick[1]["Rotation"] = list(map(lambda x, y: x+y, brick[1]["Rotation"], rotation))
+    else:
+        pass
+        # FIXME: BrickUtils EDIT
+        # print(f"{FM.warning} NumPy is not installed in your Python installation or environment. Rotation functions are disabled.")
+
+
 
     # Deleting all bricks
     def clear_bricks(self):
@@ -454,28 +467,41 @@ class BRCI:
 
     # Writing the project folder to brick rigs # only works on windows
     def write_to_br(self) -> None:
-        import shutil
+        """
+        Function to copy the finished project to your Brick Rigs vehicles directory.
+        """
+        if self.project_name == '' or self.project_name == ' ':
+
+            raise ValueError('[TEMPORARY PATCH] No project specified!')
+
         # Define the relative path to append to the user's home directory
-        relative_path = "AppData/Local/BrickRigs/SavedRemastered/Vehicles"
+        relative_path = os.path.join('AppData', 'Local', 'BrickRigs', 'SavedRemastered', 'Vehicles')
         # Get the user's home directory and expand the path
         user_home = os.path.expanduser("~")
         # Construct the full path by joining the user's home directory with the relative path
-        full_path = os.path.join(user_home, relative_path, self.project_name)
-
+        full_path = os.path.join(user_home, relative_path, self.project_name.lower())
+        
         try:
-            # Remove the destination folder if it exists
-            if os.path.exists(full_path):
+            # Check if the target directory is within the Vehicles folder and matches the intended project name
+            if os.path.commonpath([full_path, os.path.join(user_home, relative_path)]) != os.path.join(user_home, relative_path):
+                raise ValueError("Attempted to delete a directory outside the allowed Vehicles path.")
+
+            # Remove the destination folder if it exists and is not the Vehicles root itself
+            if os.path.exists(full_path) and os.path.basename(full_path) == self.project_name.lower():
                 shutil.rmtree(full_path)
+            
             # Copy the folder
             shutil.copytree(self.in_project_folder_directory, full_path)
+            print(f"Folder cloned successfully from '{self.in_project_folder_directory}' to '{full_path}'.")
         except OSError as e:
             # Failed for some reason -_-
-            FM.warning_with_header(f"Failed to clone folder: {e}",
-                                   f"This may be because .write_to_br() function was made for Windows.")
+            FM.warning_with_header("Warning", f"Failed to clone folder: {e}\nThis is usually because 'write_to_br' is a windows only function.")
+        except ValueError as ve:
+            # Safeguard triggered
+            FM.warning_with_header("Fatal Error", f"{ve} \nUsually caused by invalid project name.")
 
     def backup(self, folder_name: str | None = None) -> None:
-        import shutil
-        use_folder_name = str(int((datetime.now() - datetime(1, 1, 1)).total_seconds() * 1e7)) if folder_name is None else folder_name
+        use_folder_name = get_64_time_100ns() if folder_name is None else folder_name
         # Define the relative path to append to the user's home directory
         relative_path = os.path.join(os.getenv('LOCALAPPDATA'), 'BrickRigs', 'SavedRemastered', 'Vehicles')
         # Chars known to be safe
@@ -492,7 +518,9 @@ class BRCI:
                 os.makedirs(self.backup_directory)
 
             if os.path.exists(relative_path) and pattern.match(use_folder_name):
-                shutil.copytree(relative_path, os.path.join(self.backup_directory, use_folder_name))
+                    if os.path.exists(os.path.join(self.backup_directory, use_folder_name)):
+                        shutil.rmtree(os.path.join(self.backup_directory, use_folder_name))
+                    shutil.copytree(relative_path, os.path.join(self.backup_directory, use_folder_name))
             else:
                 FM.warning_with_header("Cannot create backup",
                                        "Either your vehicles folder doesn't exist/isn't found (are you on Linux or MacOS?) or the folder name has invalid characters such as emoji.") 
@@ -881,13 +909,13 @@ class BRCI:
                                     temp_pre_spl += unsigned_int(int(pt_c_val), 1)
 
 
-                        elif isinstance(pt_c_val, list) and isinstance(pt_c_val[0],
-                                                                       str):  # OR if it doesn't end with .InputAxis
+                        elif isinstance(pt_c_val, list) and (isinstance(pt_c_val[0],
+                                                                       str) or isinstance(pt_c_val[0], int)):  # OR if it doesn't end with .InputAxis
 
                             temp_pre_spl += unsigned_int(len(pt_c_val), 2)
-
                             for pt_c_sub_val in pt_c_val:
-                                temp_pre_spl += unsigned_int(string_name_to_id_table[pt_c_sub_val] + 1, 2)
+                                #print(f"pt_c_sub_val: {pt_c_sub_val}\npt_c_sub_val type: {type(pt_c_sub_val)}\npt_c_val: {pt_c_val}")
+                                temp_pre_spl += unsigned_int(string_name_to_id_table[str(pt_c_sub_val)] + 1, 2)
 
 
                         elif isinstance(pt_c_val, str):  # OR if it ends with .InputAxis
@@ -902,7 +930,8 @@ class BRCI:
                         else:
 
                             raise ValueError(f'Unsupported property type: {pt_c_val}.\n'
-                                             f'Consider using bin to implement this property, as explained in Doc/DOCUMENTATION.md')
+                                             f'Consider using bin to implement this property, as explained in Doc/DOCUMENTATION.md\n'
+                                             f'DEBUG INFORMATION: {pt_c_val}, ')
 
                         property_length_list.append(len(temp_pre_spl))
                         temp_spl += temp_pre_spl
@@ -1261,6 +1290,9 @@ class BRCI:
                                     p_val_id_to_val[property_name] |= {i: r_bin_str(b'\xFF\xFE') + property_bin[2:]}
                                 else:
                                     # It's UTF-8
+                                    print(f"pray this works: {property_bin}")
+                                    # pray THIS works
+                                    property_bin = property_bin[2:]
                                     p_val_id_to_val[property_name] |= {i: r_small_bin_str(property_bin)}
 
                             case 'uint8':
@@ -1524,21 +1556,28 @@ class BRCI:
             FM.warning_with_header('WIP Features not enabled!', 'You are attempting to use .load_metadata().\n'
                                                                 'This feature is still WIP. Set .wip_features to True\n'
                                                                 'In order to access WIP features.')
-
-            with open(os.path.join(self.in_project_folder_directory, file_name), 'wb') as metadata_file_reader:
-
+        else:
+            #print("opening metadata file")
+            with open(os.path.join(self.in_project_folder_directory, file_name), 'rb') as metadata_file_reader:
+                #print(f"opening {file_name}")
                 metadata_file = bytearray(metadata_file_reader.read())
 
             del metadata_file[:1]
 
             name_len: int = r_signed_int(b_pop(metadata_file, 2))
+            #print(f"name len: {name_len}")
             if name_len >= 0:
+                #print("UTF-8")
                 # UTF-8
                 name: str = r_small_bin_str(b_pop(metadata_file, name_len))
+                #print(f"name: {name}")
             else:
+                #print("UTF-16")
                 # UTF-16
                 name: str = r_bin_str(b_pop(metadata_file, -name_len*2))
+                #print(f"name: {name}")
             if load_display_name:
+                #print(f"project display name set to {name}")
                 self.project_display_name = name
 
             description_len: int = r_signed_int(b_pop(metadata_file, 2))
@@ -1575,6 +1614,7 @@ class BRCI:
             for _ in range(3):
                 if metadata_file: # If there's still something to take
                     tag_len = r_unsigned_int(b_pop(metadata_file, 1))
+                    print(f"if i dont print this, the entire read-metadata function breaks. welcome to brci: {b_pop(metadata_file, tag_len)}")
                     tag = r_small_bin_str(b_pop(metadata_file, tag_len))
                     tags.append(tag)
             if load_tags:

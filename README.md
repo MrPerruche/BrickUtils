@@ -21,6 +21,24 @@ If you have any feedback, found a bug, need help, or more, join the BRCI Discord
 
 ## Changelog
 
+### Planned changes for update D8
+Creation editor improvements
+- Revamp creation editor UX.
+- Restrict scaling to always scale each axis equally.
+- Add build rotation (in creation editor).
+- Add duplicated bricks deletion (in creation editor).
+- Add connections edition (in creation editor).
+
+### Update D7
+Important fixes:
+- Updated BRCI to C54 (C51 -> C54), featuring bugfixes and reducing data loss risks.
+- BrickUtils now refuses to generate anything when no project is provided, fixing a severe issue regarding data loss.
+- Removed creation editor temporarily as it's soon going to be revamped.
+- BrickUtils is no longer configured to port any files to Brick Rigs by default.
+- Added settings reinitialization in the settings menu.
+- \* BrickUtils D2 and newer fully support Python 3.12.5.
+- \* BrickUtils D2 and newer fully support Brick Rigs 1.7.4.
+
 ### Update D6
 Added encryption / decryption:
 - Added a basic .brv (en/de)cryptor.

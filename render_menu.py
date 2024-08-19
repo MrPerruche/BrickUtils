@@ -1,5 +1,5 @@
 import os
-from brci import FM, deepcopy
+from brci import FM, deepcopy, numpy_features_enabled
 from data import version, br_version, get_len_unit, clen_str, str_connector, str_int_dir, match_color, render_lightbar
 from data import get_r_lightbar_colors
 import re
@@ -414,113 +414,12 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
             print(render_text('6', 'Cancel', False))
             print(render_text('7', 'Apply without saving', False))
             print(render_text('8', 'Apply and save', False))
+            print(render_text('9', 'Reset settings', False))
 
         case 'main/settings/backup_limit':
 
             print(render_text('0', 'Main menu > Settings > Backup limit', True))
             print(render_text('OTHER', f'Input new backup limit...', False))
-
-        case 'main/edit':
-
-            key = 0
-
-            print(render_text(str(key), 'Main menu > Creation editor', True)); key += 1  # Exit
-
-            print(render_text(str(key), f'Project: {memory["main/edit"]["project"]}', False)); key += 1
-
-            print(render_text(str(key), f'Move: {bool_to_yes_no(memory["main/edit"]["move"])}', False)); key += 1
-            if memory["main/edit"]["move"]:
-
-                print(render_text(str(key), f'Offset on the x axis: {clen_str(memory["main/edit"]["off_x"], unit)}', False)); key += 1
-
-                print(render_text(str(key), f'Offset on the y axis: {clen_str(memory["main/edit"]["off_y"], unit)}', False)); key += 1
-
-                print(render_text(str(key), f'Offset on the z axis: {clen_str(memory["main/edit"]["off_z"], unit)}', False)); key += 1
-
-            print(render_text(str(key), f'Scale: {bool_to_yes_no(memory["main/edit"]["scale"])}', False)); key += 1
-            if memory["main/edit"]["scale"]:
-
-                print(render_text(str(key), f'Scale on the x axis: {str(memory["main/edit"]["scale_x"])}', False)); key += 1
-
-                print(render_text(str(key), f'Scale on the y axis: {str(memory["main/edit"]["scale_y"])}', False)); key += 1
-
-                print(render_text(str(key), f'Scale on the z axis: {str(memory["main/edit"]["scale_z"])}', False)); key += 1
-
-                r_adapt_connections = f'Unknown ({memory["main/edit"]["adapt_connections"]})'
-                if memory["main/edit"]["adapt_connections"] == 'no':
-                    r_adapt_connections = 'do not modify'
-                elif memory["main/edit"]["adapt_connections"] == 'delete':
-                    r_adapt_connections = 'delete all connections'
-                elif memory["main/edit"]["adapt_connections"] == 'yes':
-                    r_adapt_connections = 'try to scale connections'
-                print(render_text(str(key), f'Adapt connections: {r_adapt_connections}', False)); key += 1
-
-                print(render_text(str(key), f'Scale relevant non-size related properties: {bool_to_yes_no(memory["main/edit"]["scale_extras"])}', False)); key += 1
-
-            print(render_text('WARN', 'Rotation is not working correctly. That\'s why it\'s in red.', False, FM.yellow))
-
-            print(render_text(str(key), f'Rotate: {bool_to_yes_no(memory["main/edit"]["rotate"])}', False, FM.light_red)); key += 1
-            if memory["main/edit"]["rotate"]:
-
-                print(render_text(str(key), f'Rotation on the x axis: {memory["main/edit"]["rot_x"]}°', False, FM.light_red)); key += 1
-
-                print(render_text(str(key), f'Rotation on the y axis: {memory["main/edit"]["rot_y"]}°', False, FM.light_red)); key += 1
-
-                print(render_text(str(key), f'Rotation on the z axis: {memory["main/edit"]["rot_z"]}°', False, FM.light_red)); key += 1
-
-            print(render_text(str(key), f'Delete duplicated bricks: {bool_to_yes_no(memory["main/edit"]["clear_duplicates"])}', False)); key += 1
-
-            print(render_text(str(key), 'Generate modified creation', False)); key += 1
-
-        case 'main/edit/off_x':
-
-            print(render_text('', 'Main menu > Creation editor > Offset on the x axis', True))
-            print(render_text('ANY', f'Input new offset on the x axis in {get_len_unit(unit, False, True)}...', False))
-
-        case 'main/edit/off_y':
-
-            print(render_text('', 'Main menu > Creation editor > Offset on the y axis', True))
-            print(render_text('ANY', f'Input new offset on the y axis in {get_len_unit(unit, False, True)}...', False))
-
-        case 'main/edit/off_z':
-
-            print(render_text('', 'Main menu > Creation editor > Offset on the z axis', True))
-            print(render_text('ANY', f'Input new offset on the z axis in {get_len_unit(unit, False, True)}...', False))
-
-        case 'main/edit/scale_x':
-
-            print(render_text('', 'Main menu > Creation editor > Scale on the x axis', True))
-            print(render_text('ANY', f'Input new scale on the x axis...', False))
-
-        case 'main/edit/scale_y':
-
-            print(render_text('', 'Main menu > Creation editor > Scale on the y axis', True))
-            print(render_text('ANY', f'Input new scale on the y axis...', False))
-
-        case 'main/edit/scale_z':
-
-            print(render_text('', 'Main menu > Creation editor > Scale on the z axis', True))
-            print(render_text('ANY', f'Input new scale on the z axis...', False))
-
-        case 'main/edit/rot_x':
-
-            print(render_text('', 'Main menu > Creation editor > Rotation on the x axis', True))
-            print(render_text('ANY', f'Input new rotation on the x axis in degree(s)...', False))
-
-        case 'main/edit/rot_y':
-
-            print(render_text('', 'Main menu > Creation editor > Rotation on the y axis', True))
-            print(render_text('ANY', f'Input new rotation on the y axis in degree(s)...', False))
-
-        case 'main/edit/rot_z':
-
-            print(render_text('', 'Main menu > Creation editor > Rotation on the z axis', True))
-            print(render_text('ANY', f'Input new rotation on the z axis in degree(s)...', False))
-
-        case 'main/edit/project':
-
-            print(render_text('', 'Main menu > Creation editor > Project name', True))
-            print(render_text('ANY', f'Input new project name...', False))
 
         case 'main/brick':
 
@@ -1056,4 +955,91 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
             print(render_text('', 'How to make your password safer:', False))
             print(render_text('', 'Make your password extremely long, use caps, numbers and special characters', False))
             print(render_text('', 'The password must be unique. Do not reuse it for another file.', False))
+
+        case 'main/edit':
+
+            key: int = 0
+
+            print(render_text(str(key), 'Main menu > Creation editor', True)); key += 1
+
+            print(render_text(str(key), f'Project name: {memory["main/edit"]["project"]}', False)); key += 1
+
+            move_display: str = 'no'
+            if memory["main/edit"]['move'] is not None:
+                move_display = (f'yes (X: {clen_str(memory['main/edit']['move'][0], unit)}, '
+                                f'Y: {clen_str(memory['main/edit']['move'][1], unit)}, '
+                                f'Z: {clen_str(memory["main/edit"]['move'][2], unit)})')
+            print(render_text(str(key), f'Move: {move_display}', False)); key += 1
+
+            if not numpy_features_enabled:
+
+                print(render_text('', f'Rotate: no (requires NumPy)', False, FM.light_red))
+
+            else:
+
+                print(render_text(str(key), f'Rotate: {'no' if memory["main/edit"]['rotate'] is None else "yes"}', False)); key += 1
+
+                if memory['main/edit']['rotate'] is not None:
+                    print(render_text(str(key), f'Rotate around: '
+                        f'X: {clen_str(memory["main/edit"]['rotate'][1][0], unit)}, '
+                        f'Y: {clen_str(memory["main/edit"]['rotate'][1][1], unit)}, '
+                        f'Z: {clen_str(memory["main/edit"]['rotate'][1][2], unit)}', False)); key += 1
+
+                    print(render_text(str(key), f'Rotate by: '
+                        f'X: {memory['main/edit']['rotate'][0][0]:.2f}°, '
+                        f'Y: {memory["main/edit"]['rotate'][0][1]:.2f}°, '
+                        f'Z: {memory["main/edit"]['rotate'][0][2]:.2f}°', False)); key += 1
+
+                    print(render_text(str(key), f'Allow rotation to go out of -180° to 180° range: '
+                                                f'{bool_to_yes_no(memory['main/edit']['allow_out_of_range_rotation'])}', False)); key += 1
+
+            scale_display: str = 'no'
+            if memory['main/edit']['scale'] is not None:
+                scale_display = f'x{memory['main/edit']['scale']}'
+                scale_display += f' (/{1 / memory['main/edit']['scale']})' if memory['main/edit']['scale'] < 1.0 else ''
+            print(render_text(str(key), f'Scale: {scale_display}', False)); key += 1
+
+            display_connections = 'delete ' + ', '.join([key for key, item in memory['main/edit']['connections'].items() if not item])
+            if all(memory['main/pixelart']['connections'].values()):
+                display_connections = 'keep all connections'
+            print(render_text(str(key), f'Connections: {display_connections}', False)); key += 1
+
+            display_duplicates = 'do not delete duplicates' if memory['main/edit']['duplicates'] == 'keep' else 'delete all duplicates'
+            print(render_text(str(key), f'Duplicates: {display_duplicates}', False)); key += 1
+
+            print(render_text(str(key), f'Generate modified creation', False)); key += 1
+
+
+
+        case 'main/edit/project':
+
+            print(render_text('', 'Main menu > Creation editor > Edit selected project', True))
+            print(render_text('ANY', 'Input new project name...', False))
+
+
+        case 'main/edit/move':
+
+            print(render_text('0', 'Main menu > Creation editor > Move', True))
+
+            print(render_text('1', f'Offset on X axis: {clen_str(memory['main/edit']['move'][0], unit)}', False))
+            print(render_text('2', f'Offset on Y axis: {clen_str(memory['main/edit']['move'][1], unit)}', False))
+            print(render_text('3', f'Offset on Z axis: {clen_str(memory["main/edit"]['move'][2], unit)}', False))
+
+            print(render_text('4', f'Disable moving', False))
+
+        case 'main/edit/move/x':
+
+            print(render_text('', 'Main menu > Creation editor > Move > Edit offset on X axis', True))
+            print(render_text('ANY', 'Input new offset on X axis...', False))
+
+        case 'main/edit/move/y':
+
+            print(render_text('', 'Main menu > Creation editor > Move > Edit offset on Y axis', True))
+            print(render_text('ANY', 'Input new offset on Y axis...', False))
+
+        case 'main/edit/move/z':
+
+            print(render_text('', 'Main menu > Creation editor > Move > Edit offset on Z axis', True))
+            print(render_text('ANY', 'Input new offset on Z axis...', False))
+
 

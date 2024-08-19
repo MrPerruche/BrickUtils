@@ -1,6 +1,6 @@
 from data import *
 from copy import deepcopy
-from brci import FM
+from brci import FM, numpy_features_enabled
 import update_menu
 import render_menu
 import os.path
@@ -56,6 +56,18 @@ def main():
 
     except Exception as e:
         input(f'{FM.red}An error occured when trying to load force_settings.txt:\n{type(e).__name__}: {e}{FM.reset}')
+
+    if not numpy_features_enabled:
+
+        render_menu.clear_terminal()
+
+        print(render_menu.render_text('WARN', 'NumPy is not installed. Some features will be disabled!', True, FM.yellow))
+        print(render_menu.render_text('', 'How to install numpy:', False, FM.yellow))
+        print(render_menu.render_text('', '1. Open Windows powershell', False, FM.yellow))
+        print(render_menu.render_text('', '2. Input and run the following command: py -3.12 -m pip install numpy', False, FM.yellow))
+        print(render_menu.render_text('', '3. Installation is done. You may restart BrickUtils', False, FM.yellow))
+        print(render_menu.render_text('ANY', 'Continue without NumPy', False, FM.yellow))
+        input('> ')
 
     while True:
 

@@ -9,6 +9,7 @@ import subprocess
 from random import choice, randint
 from secrets import choice as choice_safe
 import string
+import re
 
 # A bunch of hardcoded values here, as well as function used in several scripts.
 # There's a bunch of warnings here. I haven't figured them out, but it seems everything works. Maybe a bug with my IDE.
@@ -17,8 +18,8 @@ import string
 # - I use list comprehension a bit too much. Maybe I shouldn't have, but it's fun to write.
 
 menu: str = 'main'
-version: str = 'D6'
-br_version: str = '1.7.3b'
+version: str = 'D7'
+br_version: str = '1.7.4'
 cwd = os.path.dirname(os.path.realpath(__file__))
 
 with open(os.path.join(cwd, 'resources', 'user_react_list.txt'), 'r') as f:
@@ -140,6 +141,7 @@ init_memory: dict[str, any] = {
         'new': {'sides': True, 'front': True, 'back': True},
         'scores': {'sides': [0, 0], 'front': [0, 0], 'back': [0, 0]},
     },
+    """
     'main/edit': {
         'project': '',
         'move': False,
@@ -158,6 +160,7 @@ init_memory: dict[str, any] = {
         'rot_z': 0.0,
         'clear_duplicates': False
     },
+    """
     'main/lightbar': {
         'project': '',
         'file_name': 'lightbar.json',
@@ -205,6 +208,15 @@ init_memory: dict[str, any] = {
     },
     'main/help': {
         'lang': 'english (english)'
+    },
+    'main/edit': {
+        'project': '',
+        'move': None,
+        'rotate': None,
+        'allow_out_of_range_rotation': False,
+        'scale': None,
+        'connections': {'sides': False, 'front': False, 'back': False},
+        'duplicates': 'keep',
     }
 }
 
@@ -257,6 +269,23 @@ def hash_password(password: str | bytes, method: str = 'sha512-r') -> bytearray:
         hash_pass: bytes = hashlib.sha512(bin_password).digest()
 
     return bytearray(hash_pass)
+
+
+def is_valid_folder_name(folder_name: str) -> bool:
+    # Windows folder names cannot contain any of these characters
+    invalid_chars = r'[<>:"/\\|?*]'
+
+    # Check if the name is empty or contains invalid characters
+    if not folder_name or re.search(invalid_chars, folder_name):
+        return False
+
+    # Check if the folder name ends with a space or a period (Windows does not allow this)
+    if folder_name[-1] in {' ', '.'}:
+        return False
+
+    # If all checks pass, the name is valid
+    return True
+
 
 
 def xor_encrypt(data: bytearray, pw: bytearray) -> bytes:

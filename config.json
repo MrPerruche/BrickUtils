@@ -1,7 +1,7 @@
 {
     "port": [
-        true,
-        true
+        false,
+        false
     ],
     "backup": [
         true,
