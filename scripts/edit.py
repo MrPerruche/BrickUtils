@@ -2,6 +2,7 @@ import os
 import brci
 import math
 from data import cwd, version, generate_backup, clen_str, clamp
+from copy import deepcopy
 
 
 def edit(data: dict[str, any], unit: str, port: bool, backup_mode: list[bool], limit: int) -> (bool, str):
@@ -22,13 +23,33 @@ def edit(data: dict[str, any], unit: str, port: bool, backup_mode: list[bool], l
     creation.project_name = data['project']
     creation.project_display_name = f'{data['project']} (modified)'
     creation.custom_description_watermark = f'Modified using BrickUtils {version} by @perru_'
-    creation.description = f'Project name: {data['project']}\r\nMove: {
-        f'x: {clen_str(data['off_x'], unit)}, y: {clen_str(data['off_y'], unit)}, z: {clen_str(data['off_z'], unit)}' if data['move'] else 'no'
-    }\r\nScale: {
-        f'x: {float(data["scale_x"])}, y: {float(data["scale_y"])}, z: {float(data["scale_z"])}' if data['scale'] else 'no'
-    }\r\nRotate: {
-        f'x: {float(data["rot_x"])}°, y: {float(data["rot_y"])}°, z: {float(data["rot_z"])}°' if data['rotate'] else 'no'
-    }'
+    creation.description = f'Project name: {data['project']}\n'
+
+    move_display: str = 'no'
+    if data['move'] is not None:
+        move_display = (f'yes (X: {clen_str(data['move'][0], unit)}, '
+                        f'Y: {clen_str(data['move'][1], unit)}, '
+                        f'Z: {clen_str(data['move'][2], unit)})')
+    creation.description += f'Move: {move_display}\n'
+
+    if data['rotate'] is None:
+        creation.description += 'Rotate: no\n'
+    else:
+        creation.description += (f'Rotate around: '
+                                 f'X: {clen_str(data['rotate'][1][0], unit)}, '
+                                 f'Y: {clen_str(data['rotate'][1][1], unit)}, '
+                                 f'Z: {clen_str(data['rotate'][1][2], unit)}\n')
+        creation.description += (f'Rotate by: '
+                                 f'X: {data['rotate'][0][0]:.2f}°, '
+                                 f'Y: {data['rotate'][0][1]:.2f}°, '
+                                 f'Z: {data['rotate'][0][2]:.2f}°\n')
+        creation.description += (f'Allow rotation to go out of -180° to 180° range: '
+                                 f'{'yes' if data['allow_out_of_range_rotation'] else 'no'}\n')
+
+    if data['scale'] is None:
+        creation.description += 'Scale: no\n'
+    else:
+        creation.description += f'Scale: x{data['scale']}'
 
     try:
         creation.load_brv(True, False, False)
@@ -38,212 +59,85 @@ def edit(data: dict[str, any], unit: str, port: bool, backup_mode: list[bool], l
     bricks = creation.get_all_bricks()
     new_bricks = []
 
+    # I know I could just make creation.bricks a set then a list again but whatever.
+    known_bricks: set = set()
+
     for i, brick in enumerate(bricks):
 
-        if data['rotate']:  # TODO
+        if data['duplicates'] == 'delete identical':
 
-            rot_x = math.radians(data['rot_x'])  # Convert degrees to radians
-            rot_y = math.radians(data['rot_y'])
-            rot_z = math.radians(data['rot_z'])
+            if brick[1] in known_bricks:
+                continue
+            # else:
+            known_bricks.add(brick[1])
 
-            # Original position vector
-            pos = brick[1]['Position']
+        if data['rotate'] is not None:
 
-            # Applying the rotations to the position
-            rotated_pos = [
-                pos[0] * math.cos(rot_z) - pos[1] * math.sin(rot_z),
-                pos[0] * math.sin(rot_z) + pos[1] * math.cos(rot_z),
-                pos[2],
-            ]
-            rotated_pos = [
-                rotated_pos[0] * math.cos(rot_y) - rotated_pos[1] * math.sin(rot_y),
-                rotated_pos[0] * math.sin(rot_y) + rotated_pos[1] * math.cos(rot_y),
-                rotated_pos[2] + pos[0] * math.sin(rot_y) * math.sin(rot_z) - pos[1] * math.cos(rot_y) * math.sin(rot_z),
-            ]
-            rotated_pos = [
-                rotated_pos[0] * math.cos(rot_x) - rotated_pos[1] * math.sin(rot_x),
-                rotated_pos[0] * math.sin(rot_x) + rotated_pos[1] * math.cos(rot_x),
-                rotated_pos[2],
-            ]
+            brick[1]['Position'] = brci.rotate_point_3d(brick[1]['Position'], data['rotate'][1], data['rotate'][0])
+            brick[1]['Rotation'] = list(map(lambda x, y: x+y, brick[1]["Rotation"], data['rotate'][0]))
 
-            # Update the position in the brick dictionary
-            brick[1]['Position'] = rotated_pos
+        if not data['allow_out_of_range_rotation']:
 
-            # Assuming the original rotation is given in degrees and needs to be converted to radians
-            brick[1]['Rotation'][0] += data['rot_x']
-            brick[1]['Rotation'][1] += data['rot_y']
-            brick[1]['Rotation'][2] += data['rot_z']
+            brick[1]['Rotation'] = [(axis_rot + 180) %360 - 180 for axis_rot in brick[1]['Rotation']]
 
+        if not data["connections"]["sides"] and 'ConnectorSpacing' in brick[1]:
+            brick[1]['ConnectorSpacing'][0] = 0
+            brick[1]['ConnectorSpacing'][1] = 0
+            brick[1]['ConnectorSpacing'][2] = 0
+            brick[1]['ConnectorSpacing'][3] = 0
 
-        if data['move']:
+        if not data["connections"]['top'] and 'ConnectorSpacing' in brick[1]:
+            brick[1]['ConnectorSpacing'][4] = 0
 
-            brick[1]['Position'][0] += data['off_x']
-            brick[1]['Position'][1] += data['off_y']
-            brick[1]['Position'][2] += data['off_z']
+        if not data["connections"]['bottom'] and 'ConnectorSpacing' in brick[1]:
+            brick[1]['ConnectorSpacing'][5] = 0
 
-        if data['scale']:
+        if data['scale'] is not None:
 
             for prop, val in brick[1].items():
 
                 if prop == 'Position':
-
-                    val[0] *= data['scale_x']
-                    val[1] *= data['scale_y']
-                    val[2] *= data['scale_z']
+                    val = [axis_pos * data['scale'] for axis_pos in val]
 
                 elif prop == 'BrickSize':
-
-                    val[0] *= data['scale_x']
-                    val[1] *= data['scale_y']
-                    val[2] *= data['scale_z']
-
-                elif prop == 'ConnectorSpacing' and data["adapt_connections"] == 'yes':
-
-                    new_val: list[int] = []
-
-                    for i, connection in enumerate(val):
-
-                        if connection != 0:
-                            new_val[i] = int(clamp(1, round(connection / data['scale_x']), 3))
-
-                    val = new_val.copy()
-
-                elif prop == 'ConnectorSpacing' and data["adapt_connections"] == 'delete':
-
-                    val = [0, 0, 0, 0, 0, 0]
+                    val = [axis_size * data['scale'] for axis_size in val]
 
                 elif prop == 'ExitLocation' and val is not None:
+                    val = [axis_pos * data['scale'] for axis_pos in val]
 
-                    val[0] *= data['scale_x']
-                    val[1] *= data['scale_y']
-                    val[2] *= data['scale_z']
-
-                elif prop == 'FontSize':
-
-                    # Determine if we use scale x, y, or z depending on it's angle
-                    # Idk if it works; written by ai.
-                    if abs(data['rot_x']) > abs(data['rot_y']) and abs(data['rot_x']) > abs(data['rot_z']):
-                        val *= data['scale_x']
-
-                    elif abs(data['rot_y']) > abs(data['rot_x']) and abs(data['rot_y']) > abs(data['rot_z']):
-                        val *= data['scale_y']
-
-                    else:
-                        val *= data['scale_z']
+                elif prop in ['Brightness', 'FontSize', 'InputScale', 'SuspensionLength',
+                              'TireThickness', 'WheelDiameter', 'WheelWidth', 'WinchSpeed']:
+                    val *= data['scale']
 
                 elif prop == 'GearRatioScale':
+                    val /= data['scale']
 
-                    val *= (data['scale_x'] + data['scale_y'] + data['scale_z']) / 3
+                brick[1][prop] = val
 
-                elif prop == 'ImageScale':
+            if data['move'] is not None:
 
-                    val *= min(data['scale_x'], data['scale_y'], data['scale_z'])
+                brick[1]['Position'] = [axis_pos + axis_move for axis_pos, axis_move in zip(brick[1]['Position'], data['move'])]
 
-                elif prop == 'MinLimit':
+        to_mod: dict = {}
 
-                    # Determine if we use scale x, y, z depending on it's angle
-                    # Idk if it works; written by ai.
-                    if abs(data['rot_x']) > abs(data['rot_y']) and abs(data['rot_x']) > abs(data['rot_z']):
-                        val *= data['scale_x']
+        for prop, val in brick[1].items():
 
-                    elif abs(data['rot_y']) > abs(data['rot_x']) and abs(data['rot_y']) > abs(data['rot_z']):
-                        val *= data['scale_y']
+            if isinstance(val, brci.BrickInput) and val.brick_input_type == 'Custom' and val.brick_input is not None:
+                to_mod |= {prop: brci.BrickInput('Custom', [str(ab) for ab in val.brick_input])}
 
-                    else:
-                        val *= data['scale_z']
+            elif prop in brci.br_property_types.keys():
 
-                elif prop == 'MaxLimit':
+                if brci.br_property_types[prop] == 'brick_id':
+                    to_mod |= {prop: str(val)}
 
-                    # Determine if we use scale x, y, z depending on it's angle
-                    # Idk if it works; written by ai.
-                    if abs(data['rot_x']) > abs(data['rot_y']) and abs(data['rot_x']) > abs(data['rot_z']):
-                        val *= data['scale_x']
+                elif brci.br_property_types[prop] == 'list[brick_id]':
+                    to_mod |= {prop: [str(ab) for ab in val]}
 
-                    elif abs(data['rot_y']) > abs(data['rot_x']) and abs(data['rot_y']) > abs(data['rot_z']):
-                        val *= data['scale_y']
+        brick[1] |= deepcopy(to_mod)
 
-                    else:
-                        val *= data['scale_z']
 
-                elif prop == 'SpawnScale':
-
-                    # Determine if we use scale x, y, z depending on it's angle
-                    # Idk if it works; written by ai.
-                    if abs(data['rot_x']) > abs(data['rot_y']) and abs(data['rot_x']) > abs(data['rot_z']):
-                        val *= data['scale_x']
-
-                    elif abs(data['rot_y']) > abs(data['rot_x']) and abs(data['rot_y']) > abs(data['rot_z']):
-                        val *= data['scale_y']
-
-                    else:
-                        val *= data['scale_z']
-
-                elif prop == 'SuspensionLength':
-
-                    # Determine if we use scale x, y, z depending on it's angle
-                    # Idk if it works; written by ai.
-                    if abs(data['rot_x']) > abs(data['rot_y']) and abs(data['rot_x']) > abs(data['rot_z']):
-                        val *= data['scale_z']
-
-                    elif abs(data['rot_y']) > abs(data['rot_x']) and abs(data['rot_y']) > abs(data['rot_z']):
-                        val *= data['scale_x']
-
-                    else:
-                        val *= data['scale_y']
-
-                elif prop == 'TireThickness':
-
-                    # Determine if we use scale x, y, z depending on it's angle
-                    # Idk if it works; written by ai.
-                    if abs(data['rot_x']) > abs(data['rot_y']) and abs(data['rot_x']) > abs(data['rot_z']):
-                        val *= data['scale_z']  # Up/down
-
-                    elif abs(data['rot_y']) > abs(data['rot_x']) and abs(data['rot_y']) > abs(data['rot_z']):
-                        val *= data['scale_x']  # Left/right
-
-                    else:
-                        val *= data['scale_y']
-
-                elif prop == 'WheelDiameter':
-
-                    # Determine if we use scale x, y, z depending on it's angle
-                    # Idk if it works; written by ai.
-                    if abs(data['rot_x']) > abs(data['rot_y']) and abs(data['rot_x']) > abs(data['rot_z']):
-                        val *= data['scale_x']
-
-                    elif abs(data['rot_y']) > abs(data['rot_x']) and abs(data['rot_y']) > abs(data['rot_z']):
-                        val *= data['scale_y']
-
-                    else:
-                        val *= data['scale_z']
-
-                elif prop == 'WheelWidth':
-
-                    # Determine if we use scale x, y, z depending on it's angle
-                    # Idk if it works; written by ai.
-                    if abs(data['rot_x']) > abs(data['rot_y']) and abs(data['rot_x']) > abs(data['rot_z']):
-                        val *= data['scale_x']
-
-                    elif abs(data['rot_y']) > abs(data['rot_x']) and abs(data['rot_y']) > abs(data['rot_z']):
-                        val *= data['scale_y']
-
-                    else:
-                        val *= data['scale_z']
-
-                elif prop == 'WinchSpeed':
-
-                    # Determine if we use scale x, y, z depending on it's angle
-                    # Idk if it works; written by ai.
-                    if abs(data['rot_x']) > abs(data['rot_y']) and abs(data['rot_x']) > abs(data['rot_z']):
-                        val *= data['scale_x']
-
-                    elif abs(data['rot_y']) > abs(data['rot_x']) and abs(data['rot_y']) > abs(data['rot_z']):
-                        val *= data['scale_y']
-
-                    else:
-                        val *= data['scale_z']
-
-        new_bricks.append(brick)
+        brick[0] = str(brick[0] + 1) # If + 1: KeyError("9") else KeyError("'739'") (brick count). WHY IS IT A STR AND AN INT WHEN I DID EVERYTHING TO PREVENT THAT?
+        new_bricks.append(deepcopy(brick))
 
     creation.bricks = new_bricks
 

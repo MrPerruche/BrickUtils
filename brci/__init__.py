@@ -311,6 +311,7 @@ class BRCI:
     # Deleting all bricks
     def clear_bricks(self):
         self.bricks = []
+
         return self
 
     # Add Brick Alias

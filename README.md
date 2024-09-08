@@ -1,7 +1,5 @@
 # BrickUtils
 
-Please update BrickUtils frequently. It is in beta.
-
 BrickUtils only supports Windows. Other OS will cause a variety of issues.
 
 BrickUtils is only on GitHub to share it and it's code.
@@ -21,13 +19,20 @@ If you have any feedback, found a bug, need help, or more, join the BRCI Discord
 
 ## Changelog
 
-### Planned changes for update D8
-Creation editor improvements
+### Under consideration for future updates
+- Update BRCI to the latest BRCI-D version once it will support everything BRCI-C supports.
+
+### Update D8
+Last major update: end of beta & creation editor improvements
 - Revamp creation editor UX.
 - Restrict scaling to always scale each axis equally.
 - Add build rotation (in creation editor).
 - Add duplicated bricks deletion (in creation editor).
 - Add connections edition (in creation editor).
+- Fixed issue with connections menu always claiming back was previously connected.
+- \*Note: From now on I will work a lot less on BrickUtils. Only maintenance updates and fixes will be made.
+- \*as such, the light bar generator is cancelled and is no longer accessible*.
+- \*PRs will from now on be accepted if you wish working on BrickUtils (I doubt that).
 
 ### Update D7
 Important fixes:

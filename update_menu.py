@@ -1,5 +1,5 @@
 import os
-from brci import BrickInput
+from brci import BrickInput, numpy_features_enabled, FM
 from copy import deepcopy
 from data import (react_dict, char_blacklist, clen, init_memory, i_int, i_float, cwd, save_json, load_json,
                   multi_replace, convert_length, password_protected_brv, return_password, set_clipboard,
@@ -98,14 +98,26 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
 
         elif prompt == '4':
 
-            new_menu = 'main/lightbar'
+            # new_menu = 'main/lightbar'
+
+            memory['invalid']['text'] = ('Lightbar generator is cancelled.\n'
+                                         'If you wish to continue (and waste your time):\n'
+                                         '1. Run debug_tools.py\n'
+                                         '2. Input 4, press enter and quit.\n'
+                                         '3. Restart BrickUtils\n'
+                                         '4. Input the following code in the new window:\n'
+                                         f'   {FM.reset}menu = {FM.light_green}\'main/lightbar\'{FM.light_red}\n'
+                                         '5. Click Inject Code then go back to BrickUtils\n'
+                                         '6. Input gibberish and you will open in the lightbar generator.')
+            memory['invalid']['return_path'] = 'main'
+            new_menu = 'invalid'
 
         elif prompt == '5':
 
-            # new_menu = 'main/edit'
-            memory['invalid']['return_path'] = 'main'
-            memory['invalid']['text'] = 'Creation editor is not functional yet.'
-            new_menu = 'invalid'
+            new_menu = 'main/edit'
+            # memory['invalid']['return_path'] = 'main'
+            # memory['invalid']['text'] = 'Creation editor is not functional yet.'
+            # new_menu = 'invalid'
 
         elif prompt == '6':
 
@@ -740,7 +752,7 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
             # Taken from debug_tools.py
 
             sr_source = os.path.join(cwd, 'resources', 'default_config')  # has no extension
-            sr_new_path = os.path.join(cwd, 'config.json')
+            # sr_new_path = os.path.join(cwd, 'config.json')
 
             memory['main/settings']['new_main'] = load_json(sr_source)
 
@@ -1995,7 +2007,80 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
                 return new_menu
         int_prompt -= 1
 
-        #TODO
+        if int_prompt == 0:
+            if memory['main/edit']['rotate'] is None:
+                memory['main/edit']['rotate'] = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
+                memory['main/edit']['allow_out_of_range_rotation'] = False
+            else:
+                memory['main/edit']['rotate'] = None
+        int_prompt -= 1
+
+        if memory['main/edit']['rotate'] is not None and numpy_features_enabled:
+
+            if int_prompt == 0:
+                new_menu = 'main/edit/rotate_around'
+                return new_menu
+            int_prompt -= 1
+
+            if int_prompt == 0:
+                new_menu = 'main/edit/rotate_by'
+                return new_menu
+            int_prompt -= 1
+
+            if int_prompt == 0:
+                memory['main/edit']['allow_out_of_range_rotation'] = not memory['main/edit']['allow_out_of_range_rotation']
+            int_prompt -= 1
+
+        if int_prompt == 0:
+            if memory['main/edit']['scale'] is None:
+                memory['main/edit']['scale'] = 1.0
+            else:
+                new_menu = 'main/edit/scale'
+                return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+            memory['main/edit/connections'] = deepcopy({
+                'edited': 'sides',
+                'new': {'sides': True, 'top': True, 'bottom': True},
+                'scores': {'sides': [0, 0], 'top': [0, 0], 'bottom': [0, 0]},
+            })
+
+            new_menu = 'main/edit/connections'
+            return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+            if memory['main/edit']['duplicates'] == 'keep':
+                memory['main/edit']['duplicates'] = 'delete identical'
+            else: #if memory['main/edit']['duplicates'] == 'delete identical':
+                memory['main/edit']['duplicates'] = 'keep'
+            new_menu = 'main/edit'
+            return new_menu
+        int_prompt -= 1
+
+        if int_prompt == 0:
+            # noinspection PyUnusedLocal
+            success, return_data = False, ''
+            try:
+                success, return_data = scripts.edit.edit(memory['main/edit'], unit, memory['main']['port'][1],
+                                                         memory['main']['backup'], memory['main']['backup_limit'])
+            except Exception as e:
+                memory['invalid']['return_path'] = 'main/edit'
+                memory['invalid'][
+                    'text'] = f'Failed to modify creation (An unexpected error occured!).\n{type(e).__name__}: {e}'
+                new_menu = 'invalid'
+                return new_menu
+            if success:
+                memory['success']['return_path'] = 'main/edit'
+                memory['success']['text'] = f'Successfully modified \'{memory['main/edit']['project']}\' {return_data}'
+                new_menu = 'success'
+            else:
+                memory['invalid']['return_path'] = 'main/edit'
+                memory['invalid']['text'] = f'Failed to modify creation: {return_data}.'
+                new_menu = 'invalid'
+
+        int_prompt -= 1
 
 
     elif menu == 'main/edit/project':
@@ -2060,5 +2145,170 @@ def update_menu(prompt: str, menu: str, memory: dict[str, any]):
             memory['invalid']['return_path'] = 'main/edit/move'
             memory['invalid']['text'] = "Offset on Z axis must be a number."
             new_menu = 'invalid'
+
+    elif menu == 'main/edit/rotate_around':
+
+        if prompt == '0':
+            new_menu = 'main/edit'
+        elif prompt == '1':
+            new_menu = 'main/edit/rotate_around/x'
+        elif prompt == '2':
+            new_menu = 'main/edit/rotate_around/y'
+        elif prompt == '3':
+            new_menu = 'main/edit/rotate_around/z'
+        elif prompt == '4':
+            memory['main/edit']['rotate'][1] = [0.0, 0.0, 0.0]
+
+    elif menu == 'main/edit/rotate_around/x':
+
+        try:
+            memory['main/edit']['rotate'][1][0] = clen(prompt, unit)
+            new_menu = 'main/edit/rotate_around'
+        except ValueError:
+            memory['invalid']['return_path'] = 'main/edit/rotate_around'
+            memory['invalid']['text'] = "Center of rotation position on X axis must be a number."
+            new_menu = 'invalid'
+
+    elif menu == 'main/edit/rotate_around/y':
+
+        try:
+            memory['main/edit']['rotate'][1][1] = clen(prompt, unit)
+            new_menu = 'main/edit/rotate_around'
+        except ValueError:
+            memory['invalid']['return_path'] = 'main/edit/rotate_around'
+            memory['invalid']['text'] = "Center of rotation position on Y axis must be a number."
+            new_menu = 'invalid'
+
+    elif menu == 'main/edit/rotate_around/z':
+
+        try:
+            memory['main/edit']['rotate'][1][2] = clen(prompt, unit)
+            new_menu = 'main/edit/rotate_around'
+        except ValueError:
+            memory['invalid']['return_path'] = 'main/edit/rotate_around'
+            memory['invalid']['text'] = "Center of rotation position on Z axis must be a number."
+            new_menu = 'invalid'
+
+    elif menu == 'main/edit/rotate_by':
+
+        if prompt == '0':
+            new_menu = 'main/edit'
+        elif prompt == '1':
+            new_menu = 'main/edit/rotate_by/x'
+        elif prompt == '2':
+            new_menu = 'main/edit/rotate_by/y'
+        elif prompt == '3':
+            new_menu = 'main/edit/rotate_by/z'
+        elif prompt == '4':
+            memory['main/edit']['rotate'][0] = [0.0, 0.0, 0.0]
+
+    elif menu == 'main/edit/rotate_by/x':
+
+        try:
+            memory['main/edit']['rotate'][0][0] = i_float(prompt)
+            new_menu = 'main/edit/rotate_by'
+        except ValueError:
+            memory['invalid']['return_path'] = 'main/edit/rotate_by'
+            memory['invalid']['text'] = "Rotation angle on X axis must be a number."
+            new_menu = 'invalid'
+
+    elif menu == 'main/edit/rotate_by/y':
+
+        try:
+            memory['main/edit']['rotate'][0][1] = i_float(prompt)
+            new_menu = 'main/edit/rotate_by'
+        except ValueError:
+            memory['invalid']['return_path'] = 'main/edit/rotate_by'
+            memory['invalid']['text'] = "Rotation angle on Y axis must be a number."
+            new_menu = 'invalid'
+
+    elif menu == 'main/edit/rotate_by/z':
+
+        try:
+            memory['main/edit']['rotate'][0][2] = i_float(prompt)
+            new_menu = 'main/edit/rotate_by'
+        except ValueError:
+            memory['invalid']['return_path'] = 'main/edit/rotate_by'
+            memory['invalid']['text'] = "Rotation angle on Z axis must be a number."
+            new_menu = 'invalid'
+
+    elif menu == 'main/edit/scale':
+
+        if prompt == '0':
+            new_menu = 'main/edit'
+        elif prompt == '1':
+            new_menu = 'main/edit/scale/set_scale'
+        elif prompt == '2':
+            memory['main/edit']['scale'] = None
+
+    elif menu == 'main/edit/scale/set_scale':
+
+        try:
+            memory['main/edit']['scale'] = i_float(prompt)
+            new_menu = 'main/edit/scale'
+        except ValueError:
+            memory['invalid']['return_path'] = 'main/edit/scale'
+            memory['invalid']['text'] = "Scale must be a number."
+            new_menu = 'invalid'
+
+    elif menu == 'main/edit/connections':
+
+        if prompt == '0':
+            new_menu = 'main/edit'
+            return new_menu
+
+        # else:
+        edited = memory['main/edit/connections']['edited']
+        if not memory['main/edit/connections']['edited'] == 'confirm':
+            # get input
+            modified_input = multi_replace(prompt.lower(), char_blacklist, '')
+            user_pos, user_neg = count_strings_in_list(modified_input, [(key, item) for key, item in react_dict.items() if key != 'y'][::-1])
+            # interpret output
+            if prompt == 'y': user_pos = 10.0
+            elif prompt == 'n': user_neg = 10.0
+            if user_pos - user_neg != 0:
+                memory['main/edit/connections']['new'][edited] = user_pos - user_neg > 0
+                memory['main/edit/connections']['scores'][edited] = [round(user_pos, 4), round(user_neg, 4)]
+            elif user_pos == user_neg and user_pos != 0:
+                memory['invalid']['return_path'] = 'main/edit/connections'
+                memory['invalid']['text'] = 'Brickutils is unsure if you meant yes or no.'
+                new_menu = 'invalid'
+                return new_menu
+            else:  # if user_pos == user_neg == 0
+                memory['invalid']['return_path'] = 'main/edit/connections'
+                memory['invalid']['text'] = 'Input misunderstood. Try yes / no.'
+                new_menu = 'invalid'
+                return new_menu
+
+        if edited == 'sides':
+            memory['main/edit/connections']['edited'] = 'top'
+        elif edited == 'top':
+            memory['main/edit/connections']['edited'] = 'bottom'
+        elif edited == 'bottom':
+            memory['main/edit/connections']['edited'] = 'confirm'
+        elif edited == 'confirm':
+            # get input
+            modified_input = multi_replace(prompt.lower(), char_blacklist, '')
+            user_pos, user_neg = count_strings_in_list(modified_input, [(key, item) for key, item in react_dict.items() if key != 'y'][::-1])
+            # interpret output
+            if prompt == 'y': user_pos = 10.0
+            elif prompt == 'n': user_neg = 10.0
+            # If favorable
+            if user_pos > user_neg:
+                memory['main/edit']['connections'] = deepcopy(memory['main/edit/connections']['new'])
+                new_menu = 'main/edit'
+            elif user_pos < user_neg:
+                memory['main/edit/connections']['edited'] = 'sides'
+                memory['main/edit/connections']['new'] = {'sides': True, 'top': True, 'bottom': True}.copy()
+            elif user_pos == user_neg and user_pos != 0:
+                memory['invalid']['return_path'] = 'main/edit/connections'
+                memory['invalid']['text'] = 'BrickUtils is unsure if you meant yes or no.'
+                new_menu = 'invalid'
+                return new_menu
+            else: # if user_pos == user_neg == 0
+                memory['invalid']['return_path'] = 'main/edit/connections'
+                memory['invalid']['text'] = 'Input misunderstood. Try yes / no.'
+                new_menu = 'invalid'
+                return new_menu
 
     return new_menu

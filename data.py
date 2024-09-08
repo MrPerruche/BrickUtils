@@ -18,7 +18,7 @@ import re
 # - I use list comprehension a bit too much. Maybe I shouldn't have, but it's fun to write.
 
 menu: str = 'main'
-version: str = 'D7'
+version: str = 'D8'
 br_version: str = '1.7.4'
 cwd = os.path.dirname(os.path.realpath(__file__))
 
@@ -37,6 +37,7 @@ with open(os.path.join(cwd, 'resources', 'char_blacklist.txt'), 'r') as f:
 
 with open(os.path.join(cwd, 'resources', 'password_protected.brv'), 'rb') as f:
     password_protected_brv: bytearray = bytearray(f.read())
+
 
 
 # Setup Menu Memory
@@ -161,6 +162,7 @@ init_memory: dict[str, any] = {
         'clear_duplicates': False
     },
     """
+    'abc': None,  # Comment breaks 'main/lightbar' thing...
     'main/lightbar': {
         'project': '',
         'file_name': 'lightbar.json',
@@ -213,10 +215,15 @@ init_memory: dict[str, any] = {
         'project': '',
         'move': None,
         'rotate': None,
-        'allow_out_of_range_rotation': False,
+        'allow_out_of_range_rotation': None,
         'scale': None,
-        'connections': {'sides': False, 'front': False, 'back': False},
+        'connections': {'sides': True, 'top': True, 'bottom': True},
         'duplicates': 'keep',
+    },
+    'main/edit/connections': {
+        'edited': 'sides',
+        'new': {'sides': True, 'top': True, 'bottom': True},
+        'scores': {'sides': [0, 0], 'top': [0, 0], 'bottom': [0, 0]}
     }
 }
 

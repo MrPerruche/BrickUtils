@@ -18,8 +18,8 @@ def clear_terminal():
     print("\033[H\033[J", end='')
 
 
-def bool_to_yes_no(value: bool) -> str:
-    return 'yes' if value else 'no'
+def bool_to_yes_no(value: bool | None) -> str:
+    return '<undefined>' if value is None else 'yes' if value else 'no'
 
 
 def render_text(pre_text: str, text: str, is_menu: bool, color: str | None = None) -> str:
@@ -278,7 +278,7 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
                 f'current: {bool_to_yes_no(memory["main/pixelart"]["connections"]["front"])}' if memory['main/pixelart/connections']['edited'] in ['sides', 'front']
                 else f'new: {bool_to_yes_no(memory["main/pixelart/connections"]["new"]["front"])} / {memory["main/pixelart/connections"]["scores"]["front"][0]} vs {memory["main/pixelart/connections"]["scores"]["front"][1]}',
 
-                f'current: {bool_to_yes_no(bool_to_yes_no(memory["main/pixelart"]["connections"]["back"]))}' if memory['main/pixelart/connections']['edited'] in ['sides', 'front', 'back']
+                f'current: {bool_to_yes_no(memory["main/pixelart"]["connections"]["back"])}' if memory['main/pixelart/connections']['edited'] in ['sides', 'front', 'back']
                 else f'new: {bool_to_yes_no(memory["main/pixelart/connections"]["new"]["back"])} / {memory["main/pixelart/connections"]["scores"]["back"][0]} vs {memory["main/pixelart/connections"]["scores"]["back"][1]}'
             ]
 
@@ -595,14 +595,14 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
             print(render_text('0', 'Main menu > Important information', True))
             print(render_text('1', f'Language: {memory["main/help"]["lang"]}', False))
             if memory["main/help"]["lang"] == 'english (english)':
-                print(render_text('', 'Python and Pillow is required to fully use BrickUtils.', False))
+                print(render_text('', 'Python, Pillow and NumPy is required to fully use BrickUtils.', False))
                 print(render_text('', 'BrickUtils do not support os other than Windows.', False))
                 print(render_text('', 'Using another operating system may result in errors or data loss.', False))
                 print(render_text('', 'Backups are available to revert any data loss. You can access the backup folder in the settings.', False))
                 print(render_text('', 'Generation / Edition may be slow if BrickUtils is attempting to backup too many files.', False))
                 print(render_text('', 'If backups are disabled, consider disabling porting to prevent data loss.', False))
                 print(render_text('', 'We recommend you adjusting backup limit accordingly in settings to avoid wasting disk space.', False))
-                print(render_text('', 'BrickUtils is on GitHub only to distribute it\'s code. We will not accept contributions.', False))
+                # print(render_text('', 'BrickUtils is on GitHub only to distribute it\'s code. We will not accept contributions.', False))
                 print(render_text('', 'REMINDER: As expressed in the GPL-3.0 license, BrickUtils is provided "as is".', False))
                 print(render_text('', 'We are therefore not liable for any damage caused by the use of BrickUtils.', False))
                 print(render_text('', 'If you\'re having issues:', False))
@@ -611,7 +611,7 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
                 print(render_text('', '3. Contact @perru_ on discord and describe your issue. We will try to resolve it as soon as possible.', False))
             elif memory["main/help"]["lang"] == 'français (french)':
                 print(render_text('', 'NOTE: L\'intégralité de BrickUtils à l\'exception de ce menu est en anglais.', False))
-                print(render_text('', 'Python et Pillow sont nécéssaires pour utiliser pleinement BrickUtils.', False))
+                print(render_text('', 'Python, Pillow et NumPy sont nécéssaires pour utiliser pleinement BrickUtils.', False))
                 print(render_text('', 'BrickUtils ne prend pas en charge les systèmes d\'exploitation autres que Windows.', False))
                 print(render_text('', 'L\'utilisation d\'un autre système d\'exploitation peut entraîner des erreurs ou une perte de données.', False))
 
@@ -621,7 +621,7 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
                 print(render_text('', 'La génération/l\'édition peut être lente si BrickUtils tente de sauvegarder trop de fichiers.', False))
                 print(render_text('', 'Si les sauvegardes sont désactivées, envisagez de désactiver le portage pour éviter la perte de données.', False))
                 print(render_text('', 'Veuillez ajuster la limite de sauvegarde dans les paramètres pour ne pas gaspiller de l\'espace disque.', False))
-                print(render_text('', 'BrickUtils est sur GitHub uniquement pour distribuer son code. Nous n\'accepterons pas les contributions.', False))
+                # print(render_text('', 'BrickUtils est sur GitHub uniquement pour distribuer son code. Nous n\'accepterons pas les contributions.', False))
                 print(render_text('', 'RAPPEL : Conformément à la licence GPL-3.0, BrickUtils est fourni "as is" ("tel quel").', False))
                 print(render_text('', 'Nous ne sommes donc pas responsables des dommages causés par l\'utilisation de BrickUtils.', False))
                 print(render_text('', 'Si vous rencontrez des problèmes :', False))
@@ -631,7 +631,7 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
             elif memory['main/help']['lang'] == 'русский (russian)':
                 print(render_text('', 'NOTE: Этот текст был переведен с помощью искусственного интеллекта.', False))
                 print(render_text('', 'NOTE: Весь Brickutils, за исключением этого меню, на английском языке.', False))
-                print(render_text('', 'Для полноценного использования BrickUtils требуется Python и Pillow.', False))
+                print(render_text('', 'Для полноценного использования BrickUtils требуется Python, Pillow и NumPy.', False))
                 print(render_text('', 'BrickUtils не поддерживает операционные системы, отличные от Windows.', False))
                 print(render_text('', 'Использование другой операционной системы может привести к ошибкам или потере данных.', False))
                 print(render_text('', 'Для восстановления потерянных данных доступны резервные копии.', False))
@@ -639,7 +639,7 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
                 print(render_text('', 'Генерация/редактирование может быть медленным, если BrickUtils пытается сохранить слишком много файлов.', False))
                 print(render_text('', 'Если отключены резервные копии, рассмотрите отключение портирования, чтобы избежать потери данных.', False))
                 print(render_text('', 'Пожалуйста, настройте лимит резервного копирования в настройках, чтобы не занимать место на диске.', False))
-                print(render_text('', 'BrickUtils находится на GitHub только для распространения своего кода. Мы не принимаем вклады.', False))
+                # print(render_text('', 'BrickUtils находится на GitHub только для распространения своего кода. Мы не принимаем вклады.', False))
                 print(render_text('', 'НАПОМИНАНИЕ: Согласно лицензии GPL-3.0, BrickUtils предоставляется "как есть".', False))
                 print(render_text('', 'Следовательно, мы не несем ответственности за ущерб, причиненный использованием BrickUtils.', False))
                 print(render_text('', 'Если у вас возникли проблемы:', False))
@@ -649,7 +649,7 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
             elif memory['main/help']['lang'] == 'deutsch (german)':
                 print(render_text('', 'HINWEIS: Dieser Text wurde mithilfe künstlicher Intelligenz übersetzt.', False))
                 print(render_text('', 'HINWEIS: Der gesamte Inhalt von Brickutils, mit Ausnahme dieses Menüs, ist in Englisch.', False))
-                print(render_text('', 'Python und Pillow sind erforderlich, um BrickUtils vollständig nutzen zu können.', False))
+                print(render_text('', 'Python, Pillow und NumPy sind erforderlich, um BrickUtils vollständig nutzen zu können.', False))
                 print(render_text('', 'BrickUtils unterstützt keine Betriebssysteme außer Windows.', False))
                 print(render_text('', 'Die Verwendung eines anderen Betriebssystems kann zu Fehlern oder Datenverlust führen.', False))
                 print(render_text('', 'Backups sind verfügbar, um Datenverluste wiederherzustellen.', False))
@@ -657,7 +657,7 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
                 print(render_text('', 'Die Generierung/Bearbeitung kann langsam sein, wenn BrickUtils versucht, zu viele Dateien zu sichern.', False))
                 print(render_text('', 'Wenn Backups deaktiviert sind, sollten Sie das Portieren deaktivieren, um Datenverluste zu vermeiden.', False))
                 print(render_text('', 'Bitte passen Sie die Backup-Grenze in den Einstellungen an, um Speicherplatz zu sparen.', False))
-                print(render_text('', 'BrickUtils ist auf GitHub nur zur Verbreitung des Codes verfügbar. Wir akzeptieren keine Beiträge.', False))
+                # print(render_text('', 'BrickUtils ist auf GitHub nur zur Verbreitung des Codes verfügbar. Wir akzeptieren keine Beiträge.', False))
                 print(render_text('', 'ERINNERUNG: Gemäß der GPL-3.0-Lizenz wird BrickUtils "wie es ist" bereitgestellt.', False))
                 print(render_text('', 'Wir übernehmen keine Verantwortung für Schäden durch die Verwendung von BrickUtils.', False))
                 print(render_text('', 'Wenn Sie Probleme haben:', False))
@@ -667,7 +667,7 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
             elif memory['main/help']['lang'] == 'español (spanish)':
                 print(render_text('', 'NOTA: Este texto ha sido traducido con inteligencia artificial', False))
                 print(render_text('', 'NOTA: Todo BrickUtils, excepto este menú, está en inglés.', False))
-                print(render_text('', 'Python y Pillow son necesarios para utilizar completamente BrickUtils.', False))
+                print(render_text('', 'Python, Pillow y NumPy son necesarios para utilizar completamente BrickUtils.', False))
                 print(render_text('', 'BrickUtils no es compatible con sistemas operativos que no sean Windows.', False))
                 print(render_text('', 'El uso de otro sistema operativo puede provocar errores o pérdida de datos.', False))
                 print(render_text('', 'Puede acceder a la carpeta de respaldo en la configuración.', False))
@@ -675,7 +675,7 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
                 print(render_text('', 'La generación/edición puede ser lenta si BrickUtils respalda demasiados archivos.', False))
                 print(render_text('', 'Si las copias de seguridad están desactivadas, desactive el portado para evitar pérdida de datos.', False))
                 print(render_text('', 'Ajuste el límite de respaldo en la configuración para no desperdiciar espacio en disco.', False))
-                print(render_text('', 'BrickUtils está en GitHub solo para distribuir su código. No aceptaremos contribuciones.', False))
+                # print(render_text('', 'BrickUtils está en GitHub solo para distribuir su código. No aceptaremos contribuciones.', False))
                 print(render_text('', 'RECORDATORIO: Según la licencia GPL-3.0, BrickUtils se proporciona "as is" ("tal cual").', False))
                 print(render_text('', 'Por lo tanto, no somos responsables de los daños causados por el uso de BrickUtils.', False))
                 print(render_text('', 'Si tiene problemas:', False))
@@ -962,6 +962,8 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
 
             print(render_text(str(key), 'Main menu > Creation editor', True)); key += 1
 
+            print(render_text('WARN', f'Creation editor do not support all vehicles. Avoid any vehicles with logic related bricks.', False, FM.yellow))
+
             print(render_text(str(key), f'Project name: {memory["main/edit"]["project"]}', False)); key += 1
 
             move_display: str = 'no'
@@ -1000,11 +1002,15 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
             print(render_text(str(key), f'Scale: {scale_display}', False)); key += 1
 
             display_connections = 'delete ' + ', '.join([key for key, item in memory['main/edit']['connections'].items() if not item])
-            if all(memory['main/pixelart']['connections'].values()):
+            if all(memory['main/edit']['connections'].values()):
                 display_connections = 'keep all connections'
             print(render_text(str(key), f'Connections: {display_connections}', False)); key += 1
 
-            display_duplicates = 'do not delete duplicates' if memory['main/edit']['duplicates'] == 'keep' else 'delete all duplicates'
+            display_duplicates = f'Unknown! ({memory["main/edit"]["duplicates"]})'
+            if memory['main/edit']['duplicates'] == 'keep':
+                display_duplicates = 'do not delete duplicates'
+            elif memory['main/edit']['duplicates'] == 'delete identical':
+                display_duplicates = 'delete all duplicates'
             print(render_text(str(key), f'Duplicates: {display_duplicates}', False)); key += 1
 
             print(render_text(str(key), f'Generate modified creation', False)); key += 1
@@ -1030,16 +1036,113 @@ def render_menu(menu: str, memory: dict[str, any], safe_mode: bool, arbitrary_co
         case 'main/edit/move/x':
 
             print(render_text('', 'Main menu > Creation editor > Move > Edit offset on X axis', True))
-            print(render_text('ANY', 'Input new offset on X axis...', False))
+            print(render_text('ANY', f'Input new offset on X axis in {get_len_unit(unit, False)}...', False))
 
         case 'main/edit/move/y':
 
             print(render_text('', 'Main menu > Creation editor > Move > Edit offset on Y axis', True))
-            print(render_text('ANY', 'Input new offset on Y axis...', False))
+            print(render_text('ANY', f'Input new offset on Y axis in {get_len_unit(unit, False)}...', False))
 
         case 'main/edit/move/z':
 
             print(render_text('', 'Main menu > Creation editor > Move > Edit offset on Z axis', True))
-            print(render_text('ANY', 'Input new offset on Z axis...', False))
+            print(render_text('ANY', f'Input new offset on Z axis in {get_len_unit(unit, False)}...', False))
+
+        case 'main/edit/rotate_around':
+
+            print(render_text('0', 'Main menu > Creation editor > Rotate around', True))
+
+            print(render_text('1', f'Origin offset on X axis: {clen_str(memory["main/edit"]['rotate'][1][0], unit)}', False))
+            print(render_text('2', f'Origin offset on Y axis: {clen_str(memory["main/edit"]['rotate'][1][1], unit)}', False))
+            print(render_text('3', f'Origin offset on Z axis: {clen_str(memory["main/edit"]['rotate'][1][2], unit)}', False))
+
+            print(render_text('4', f'Reset origin offset', False))
+
+        case 'main/edit/rotate_around/x':
+
+            print(render_text('', 'Main menu > Creation editor > Rotate around > Edit origin offset on X axis', True))
+            print(render_text('ANY', f'Input new origin offset on X axis in {get_len_unit(unit, False)}...', False))
+
+        case 'main/edit/rotate_around/y':
+
+            print(render_text('', 'Main menu > Creation editor > Rotate around > Edit origin offset on Y axis', True))
+            print(render_text('ANY', f'Input new origin offset on Y axis in {get_len_unit(unit, False)}...', False))
+
+        case 'main/edit/rotate_around/z':
+
+            print(render_text('', 'Main menu > Creation editor > Rotate around > Edit origin offset on Z axis', True))
+            print(render_text('ANY', f'Input new origin offset on Z axis in {get_len_unit(unit, False)}...', False))
+
+        case 'main/edit/rotate_by':
+
+            print(render_text('0', 'Main menu > Creation editor > Rotate by', True))
+
+            print(render_text('1', f'Rotation on X axis: {memory["main/edit"]['rotate'][0][0]:.2f}°', False))
+            print(render_text('2', f'Rotation on Y axis: {memory["main/edit"]['rotate'][0][1]:.2f}°', False))
+            print(render_text('3', f'Rotation on Z axis: {memory["main/edit"]['rotate'][0][2]:.2f}°', False))
+
+            print(render_text('4', f'Reset rotation', False))
+
+        case 'main/edit/rotate_by/x':
+
+            print(render_text('', 'Main menu > Creation editor > Rotate by > Edit rotation on X axis', True))
+
+            print(render_text('ANY', f'Input new rotation on X axis in degrees...', False))
+
+        case 'main/edit/rotate_by/y':
+
+            print(render_text('', 'Main menu > Creation editor > Rotate by > Edit rotation on Y axis', True))
+
+            print(render_text('ANY', f'Input new rotation on Y axis in degrees...', False))
+
+        case 'main/edit/rotate_by/z':
+
+            print(render_text('', 'Main menu > Creation editor > Rotate by > Edit rotation on Z axis', True))
+
+            print(render_text('ANY', f'Input new rotation on Z axis in degrees...', False))
+
+        case 'main/edit/scale':
+
+            print(render_text('0', 'Main menu > Creation editor > Scale', True))
+            print(render_text('1', f'Scale: x{memory["main/edit"]['scale']}', False))
+            print(render_text('2', f'Disable scaling', False))
+
+        case 'main/edit/scale/set_scale':
+
+            print(render_text('', 'Main menu > Creation editor > Scale > Set scale', True))
+            print(render_text('', 'Tip: to downscale, input / at the beginning then the downscale coefficient (e.g. /12).', False))
+            print(render_text('ANY', f'Input new scale...', False))
+
+        case 'main/edit/connections':
+
+            state_table = [
+                f'current: {bool_to_yes_no(memory["main/edit"]["connections"]["sides"])}' if memory['main/edit/connections']['edited'] == 'sides'
+                else f'new: {bool_to_yes_no(memory["main/edit/connections"]["new"]["sides"])} / {memory["main/edit/connections"]["scores"]["sides"][0]} vs {memory["main/edit/connections"]["scores"]["sides"][1]}',
+
+                f'current: {bool_to_yes_no(memory["main/edit"]["connections"]["top"])}' if memory['main/edit/connections']['edited'] in ['sides', 'top']
+                else f'new: {bool_to_yes_no(memory["main/edit/connections"]["new"]["top"])} / {memory["main/edit/connections"]["scores"]["top"][0]} vs {memory["main/edit/connections"]["scores"]["top"][1]}',
+
+                f'current: {bool_to_yes_no(memory["main/edit"]["connections"]["bottom"])}' if memory['main/edit/connections']['edited'] in ['sides', 'top', 'bottom']
+                else f'new: {bool_to_yes_no(memory["main/edit/connections"]["new"]["bottom"])} / {memory["main/edit/connections"]["scores"]["bottom"][0]} vs {memory["main/edit/connections"]["scores"]["bottom"][1]}'
+            ]
+
+            print(render_text('0', 'Main menu > Creation editor > Edit connections', True))
+
+            print(render_text('OTHER' if memory['main/edit/connections']['edited'] == 'sides' else '',
+                              f'Connect sides (input yes / no) ?... ({state_table[0]})',
+                              False, None if memory['main/edit/connections']['edited'] == 'sides' else FM.light_black))
+
+            print(render_text('OTHER' if memory['main/edit/connections']['edited'] == 'top' else '',
+                              f'Connect top (input yes / no) ?... ({state_table[1]})',
+                              False, None if memory['main/edit/connections']['edited'] == 'top' else FM.light_black))
+
+            print(render_text('OTHER' if memory['main/edit/connections']['edited'] == 'bottom' else '',
+                              f'Connect bottom. (input yes / no) ?... ({state_table[2]})',
+                              False, None if memory['main/edit/connections']['edited'] == 'bottom' else FM.light_black))
+
+            print(render_text('OTHER' if memory['main/edit/connections']['edited'] == 'confirm' else '',
+                              f'Confirm connections (input yes / no) ?...',
+                              False, None if memory['main/edit/connections']['edited'] == 'confirm' else FM.light_black))
+
 
 
