@@ -1,3 +1,10 @@
+#BRICKUTILS IS NO LONGER MAINTAINED
+
+**AFTER CAREFUL CONSIDERATION, I HAVE DECIDED TO ABANDON THIS PROJECT, AS I HAVE LOST INTEREST IN IT.**
+**IT HAS ALSO BECOME TOO DIFFICULT TO MAINTAIN BOTH THE PROJECT AND THE OUTDATED VERSION OF BRCI (BRCI 3.54).**
+
+**IF YOU ARE INTERESTED IN MAINTAINING IT, PLEASE CONTACT ME ON DISCORD (@perru_). THANK YOU FOR YOUR UNDERSTANDING.**
+
 # BrickUtils
 
 BrickUtils only supports Windows. Other OS will cause a variety of issues.
@@ -20,7 +27,7 @@ If you have any feedback, found a bug, need help, or more, join the BRCI Discord
 ## Changelog
 
 ### Under consideration for future updates
-- Update BRCI to the latest BRCI-D version once it will support everything BRCI-C supports.
+- None
 
 ### Update D8
 Last major update: end of beta & creation editor improvements
